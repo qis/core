@@ -1,0 +1,91 @@
+# Bootloader
+sys-apps/busybox
+sys-boot/grub
+sys-kernel/bliss-initramfs
+
+# Compression
+app-arch/brotli
+app-arch/p7zip
+app-arch/xz-utils
+app-arch/zip
+dev-libs/libzip
+
+# Development
+dev-db/sqlite
+dev-lang/nasm
+dev-lang/perl
+dev-lang/python
+dev-lang/rust
+dev-lang/yasm
+dev-libs/boost
+dev-libs/botan
+dev-python/pip
+dev-util/cmake
+dev-util/ninja
+dev-util/patchelf
+dev-vcs/git
+net-libs/nodejs
+sys-devel/clang
+sys-devel/llvm
+
+# Editor
+app-editors/neovim
+dev-libs/tree-sitter
+dev-python/pynvim
+sys-apps/fd
+sys-apps/ripgrep
+
+# Filesystem
+sys-block/parted
+sys-fs/dosfstools
+sys-fs/e2fsprogs
+sys-fs/zfs
+
+# Fonts
+media-fonts/liberation-fonts
+media-fonts/terminus-font
+media-libs/fontconfig
+media-libs/freetype
+media-libs/harfbuzz
+
+# Hardware
+app-laptop/thinkfan
+sys-apps/bolt
+sys-apps/hwinfo
+sys-apps/lm-sensors
+sys-apps/lshw
+sys-apps/usbutils
+sys-process/lsof
+
+# Multimedia
+media-sound/pulseaudio
+media-sound/sox
+
+# System
+app-admin/sudo
+app-misc/c_rehash
+app-shells/bash-completion
+net-misc/dhcpcd
+net-misc/openssh
+sys-apps/moreutils
+sys-auth/polkit
+sys-auth/seatd
+x11-misc/xdg-user-dirs
+
+# Tools
+app-admin/ccze
+app-misc/jq
+app-misc/symlinks
+app-misc/tmux
+app-misc/wipe
+app-portage/gentoolkit
+app-portage/pfl
+app-text/tree
+sys-apps/pv
+sys-process/htop
+sys-process/time
+virtual/w3m
+
+# Wireless
+net-wireless/iw
+net-wireless/wpa_supplicant

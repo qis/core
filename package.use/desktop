@@ -1,0 +1,73 @@
+# Desktop
+app-text/xmlto text
+gui-libs/wlroots x11-backend
+media-fonts/fontawesome otf ttf
+media-fonts/fonts-meta emoji
+media-fonts/noto cjk
+media-libs/imlib2 shm tiff lzma svg
+media-libs/opencv contrib contribdnn
+media-libs/vulkan-loader layers
+x11-libs/libxcb xkb
+
+# Graphics
+media-gfx/imagemagick hdri lzma openexr perl svg tiff xml
+media-libs/tiff lzma zstd
+
+# Multimedia
+media-libs/libv4l dvb
+media-libs/libva xv
+media-plugins/gst-plugins-meta dvb ffmpeg http lame mpeg taglib v4l vpx
+media-tv/v4l-utils bpf dvb qt5
+media-video/ffmpeg libass libv4l v4l vpx xvid
+media-video/mpv dvb lua -sdl
+media-video/pipewire extra ffmpeg flatpak v4l
+media-video/wireplumber lua_single_target_lua5-4
+
+# Portals
+sys-apps/xdg-desktop-portal screencast
+
+# SDL
+media-libs/libsdl2 haptic joystick libsamplerate threads video
+media-libs/sdl2-mixer tremor wav
+media-libs/sdl2-ttf harfbuzz
+
+# Gtk
+dev-libs/libdbusmenu gtk3
+
+# Qt
+dev-qt/* qml widgets
+dev-qt/qtdeclarative jit
+dev-qt/qtgui accessibility
+dev-qt/qtnetwork ssl
+dev-qt/qtsql sqlite
+dev-qt/qtwidgets gtk
+
+# Qt Addons
+dev-qt/qtprintsupport cups
+dev-qt/qtscript jit scripttools
+
+# Flatpak
+dev-util/ostree curl
+net-libs/libsoup brotli
+
+# Applications
+app-crypt/gcr gtk
+app-text/evince postscript
+app-text/ghostscript-gpl gtk
+app-text/poppler cairo cjk qt5 tiff
+app-text/xmlto text
+gui-apps/waybar experimental network tray wifi
+media-gfx/feh curl exif inotify
+media-gfx/sane-backends threads
+media-gfx/sane-frontends gtk
+media-libs/gd tiff zlim
+net-misc/openssh -X
+net-misc/rdesktop ipv6 kerberos
+sci-libs/libqalculate readline gnuplot
+sci-visualization/gnuplot gd readline bitmap
+
+# Wine
+app-emulation/vkd3d spirv-tools
+app-emulation/wine-proton gecko gstreamer mono openal sdl
+app-emulation/wine-proton ssl unwind usb v4l vkd3d xcomposite
+virtual/wine proton

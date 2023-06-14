@@ -1,0 +1,3 @@
+dev-python/PyQt5
+dev-qt/qtwebengine
+>=gui-libs/gtk-4
