@@ -34,7 +34,7 @@ media-gfx/sane-backends
 media-gfx/sane-frontends
 
 # Terminal
-x11-terms/alacritty
+x11-terms/mlterm
 
 # Themes
 x11-themes/adwaita-icon-theme

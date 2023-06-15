@@ -1091,10 +1091,10 @@ dispatch-conf
 # Remove build directories.
 rm -rf /var/tmp/portage
 
-# List files installed by a specific package.
+# List files installed by a port.
 equery f --tree app-shells/bash
 
-# List ports that depend on a specific package.
+# List ports that depend on a port.
 equery d app-shells/bash
 
 # Show port that installed a specific file.
