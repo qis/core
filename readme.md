@@ -879,7 +879,7 @@ if [ "${1}" = "view" ]; then
     echo "error: virtual machine not running" 1>&2
     exit 1
   fi
-  hyprctl dispatch exec "virt-viewer -c qemu:///system -z 100 -daf --auto-resize=never --spice-preferred-compression=off ${name}" >/dev/null
+  hyprctl dispatch exec "virt-viewer -c qemu:///system -da --spice-preferred-compression=off ${name}" >/dev/null
 else
   virsh -c qemu:///system $*
 fi
