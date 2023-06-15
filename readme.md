@@ -798,10 +798,11 @@ flatpak install flathub \
   com.brave.Browser \
   org.blender.Blender \
   org.inkscape.Inkscape \
+  org.libreoffice.LibreOffice \
   org.audacityteam.Audacity \
   org.keepassxc.KeePassXC \
   org.telegram.desktop \
-  io.github.Qalculate \
+  net.scribus.Scribus \
   org.kde.krita
 
 flatpak install flathub \
