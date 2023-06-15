@@ -16,7 +16,7 @@ export LC_NUMERIC=C.UTF-8
 # Applications
 export EDITOR="vim"
 export PAGER="less"
-export LESS="-iqFR"
+export LESS="-iqFR --no-vbell"
 
 export XZ_OPT="-T16"
 
