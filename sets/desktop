@@ -29,6 +29,7 @@ net-print/cups
 net-print/cups-pdf
 
 # Scanning
+app-text/unpaper
 media-gfx/gscan2pdf
 media-gfx/sane-backends
 media-gfx/sane-frontends
