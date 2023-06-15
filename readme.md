@@ -879,7 +879,7 @@ if [ "${1}" = "view" ]; then
     echo "error: virtual machine not running" 1>&2
     exit 1
   fi
-  hyprctl dispatch exec "virt-viewer -c qemu:///system -da --spice-preferred-compression=off ${name}" >/dev/null
+  hyprctl dispatch exec "virt-viewer -c qemu:///system -daf --spice-preferred-compression=off ${name}" >/dev/null
 else
   virsh -c qemu:///system $*
 fi
@@ -1032,6 +1032,12 @@ vm view windows
 # Shutdown virtual machine.
 vm shutdown windows
 ```
+
+Enable dual-monitor support.
+
+1. Replace `-daf` with `-da` in `~/.local/bin/vm`.
+2. On Windows, add a second "Video QXL" device.
+3. On Linux, change "Video Virtio" XML from `heads="1"` to `heads="2"`.
 
 ## Kernel
 Configuration based on `dist-kernel` with the following changes.
