@@ -449,7 +449,7 @@ DOCUMENTS=documents
 DESKTOP=.local/desktop
 PUBLICSHARE=.local/public
 TEMPLATES=.local/templates
-PICTURES=.local/pictures
+PICTURES=documents/pictures
 VIDEOS=.local/videos
 MUSIC=.local/music
 EOF
@@ -696,6 +696,17 @@ emerge -ac
 # Install @desktop set.
 emerge -avn @desktop
 emerge -ac
+
+# Create view script.
+tee /etc/bash_completion.d/view >/dev/null <<'EOF'
+complete -f view
+EOF
+
+tee /usr/local/bin/view >/dev/null <<'EOF'
+#!/bin/sh
+convert -auto-orient "${1}" sixel:-
+EOF
+chmod +x /usr/local/bin/view
 
 # Install hyprpaper.
 # https://github.com/hyprwm/hyprpaper
