@@ -879,7 +879,7 @@ if [ "${1}" = "view" ]; then
     echo "error: virtual machine not running" 1>&2
     exit 1
   fi
-  hyprctl dispatch exec "virt-viewer -sdaf -c qemu:///system --spice-preferred-compression=off --cursor=local ${name}" >/dev/null
+  hyprctl dispatch exec "virt-viewer -c qemu:///system -z 100 -daf --auto-resize=never --spice-preferred-compression=off ${name}" >/dev/null
 else
   virsh -c qemu:///system $*
 fi
@@ -995,6 +995,7 @@ rm -f /root/.bashrc /home/qis/.bashrc
 
 # Configure bootloader.
 sed -E 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/g' -i /etc/default/grub
+sed -E 's/GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="video=Virtual-1:2560x1600@75 quiet"/g' -i /etc/default/grub
 update-grub2
 
 # Configure git.
