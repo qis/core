@@ -77,6 +77,7 @@ zfs create -o mountpoint=/home/qis -o encryption=aes-256-gcm -o keyformat=passph
 zfs create -o mountpoint=/tmp -o compression=off -o sync=disabled system/tmp
 zfs create -o mountpoint=/opt -o compression=off system/opt
 zfs create -o mountpoint=/opt/data -o casesensitivity=insensitive system/opt/data
+zfs create -o mountpoint=/var/lib/libvirt/images system/images
 chmod 1777 /mnt/gentoo/tmp
 
 # Mount filesystems.
@@ -301,9 +302,6 @@ ln -s nvim /usr/bin/vim
 
 # Configure editor.
 echo "EDITOR=/usr/bin/vim" > /etc/env.d/01editor
-
-# Configure time format.
-echo "TIME_STYLE=long-iso" > /etc/env.d/01time
 
 # Configure time zone.
 ln -snf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
@@ -854,8 +852,184 @@ udevadm trigger -c add /dev/kvm
 systemctl enable libvirtd
 systemctl enable libvirt-guests
 
+# Change permissions.
+chown -R qis:qemu /var/lib/libvirt/images
+
 # Reboot system.
 reboot
+```
+
+Restore virtual machines as user.
+
+```sh
+# Create vm script.
+tee ~/.local/bin/vm >/dev/null <<'EOF'
+#!/bin/sh
+if [ "${1}" = "view" ]; then
+  name="${2}"
+  if [ -z "${name}" ]; then
+    name=$(virsh -c qemu:///system list --name | head -1)
+    if [ -z "${name}" ]; then
+      echo "error: no virtual machine running" 1>&2
+      exit 1
+    fi
+  fi
+  name=$(virsh -c qemu:///system list --name | grep -E "^${name}$")
+  if [ -z "${name}" ]; then
+    echo "error: virtual machine not running" 1>&2
+    exit 1
+  fi
+  hyprctl dispatch exec "virt-viewer -sdaf -c qemu:///system --spice-preferred-compression=off --cursor=local ${name}" >/dev/null
+else
+  virsh -c qemu:///system $*
+fi
+EOF
+chmod +x ~/.local/bin/vm
+
+# Restore virtual machine.
+vm define /var/lib/libvirt/images/windows.xml
+
+# Backup virtual machine.
+vm dumpxml windows > /var/lib/libvirt/images/windows.xml
+```
+
+Create virtual machines.
+
+```sh
+# Download image.
+curl -L https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.0.0-amd64-netinst.iso \
+     -o /var/lib/libvirt/images/debian.iso
+
+# Create virtual machine.
+virt-manager
+```
+
+```
+Overview
++ Basic Details
+  Title: Debian
+CPUs
++ Configuration
+  [x] Copy host CPU configuration (host-passthrough)
++ Topology
+  [x] Manually set CPU topology
+  Sockets: 1
+  Cores: 16
+  Threads: 1
+Video Virtio
++ Video
+  3D acceleration: [x]
+Display Spice
++ Spice Server
+  Listen type: None
+  OpenGL: [x]
+```
+
+```sh
+# Log in as root.
+su -
+
+# Update system.
+apt update
+apt upgrade -y
+apt autoremove -y --purge
+
+# Install packages.
+apt install -y spice-vdagent vim
+
+# Configure GDM scaling factor.
+# Find the [org/gnome/desktop/interface] section and append:
+# scaling-factor=uint32 2
+vim /etc/gdm3/greeter.dconf-defaults
+
+# Show IP address.
+ip addr
+
+# Restart virtual machine.
+reboot
+
+# Configure SSH.
+scp .ssh/id_rsa.pub debian:.ssh/authorized_keys
+
+# Connect to VM.
+ssh debian
+
+# Log in as root.
+su -
+
+# Install system packages.
+apt install -y --no-install-recommends apt-file ca-certificates curl file git \
+  htop man-db openssh-client p7zip-full pv symlinks tmux tree tzdata xz-utils
+
+# Download apt-file(1) database.
+apt-file update
+
+# Configure sudo.
+EDITOR=tee visudo >/dev/null <<'EOF'
+Defaults env_keep += "LANG LANGUAGE LINGUAS LC_* MM_CHARSET _XKB_CHARSET"
+Defaults env_keep += "EDITOR PAGER LS_COLORS TERM TMUX SESSION USERPROFILE"
+
+root  ALL=(ALL:ALL) ALL
+qis   ALL=(ALL:ALL) NOPASSWD: ALL
+
+@includedir /etc/sudoers.d
+EOF
+
+# Configure virtual memory.
+tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
+vm.max_map_count=2147483642
+vm.swappiness=1
+EOF
+
+# Configure editor.
+echo "EDITOR=/usr/bin/vim" > /etc/profile.d/editor.sh
+
+# Configure application path.
+tee /etc/profile.d/path.sh >/dev/null <<'EOF'
+export PATH="${HOME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+EOF
+
+# Configure shell.
+curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/profile.d/bash.sh
+rm -f /root/.bashrc /home/qis/.bashrc
+
+# Configure bootloader.
+sed -E 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/g' -i /etc/default/grub
+update-grub2
+
+# Configure git.
+git config --global core.eol lf
+git config --global core.autocrlf false
+git config --global core.filemode false
+git config --global pull.rebase false
+
+# Log out as root.
+exit
+
+# Configure shell.
+ln -snf /etc/profile.d/bash.sh /home/qis/.bashrc
+
+# Configure git.
+git config --global core.eol lf
+git config --global core.autocrlf false
+git config --global core.filemode false
+git config --global pull.rebase false
+
+# Close SSH connection.
+exit
+```
+
+Manage virtual machines.
+
+```sh
+# Start virtual machine.
+vm start windows
+
+# Connect to rivtual machine.
+vm view windows
+
+# Shutdown virtual machine.
+vm shutdown windows
 ```
 
 ## Kernel
