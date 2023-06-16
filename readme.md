@@ -10,10 +10,7 @@ VGA: 2560x1600
 RAM: 32 GiB
 ```
 
-1. Download "Admin CD" from <https://www.gentoo.org/downloads/>.
-2. Use [etcher](https://www.balena.io/etcher) to create a memory stick.
-3. Boot from memory stick.
-4. Configure live environment.
+Use "Admin CD" from <https://www.gentoo.org/downloads/> to create a memory stick.
 
 ```sh
 # Change root password.
@@ -26,7 +23,7 @@ rc-service sshd start
 ip addr
 ```
 
-5. SSH into live environment.
+SSH into live environment.
 
 ```sh
 # Log in as root.
@@ -42,7 +39,7 @@ chronyd -q 'server 0.gentoo.pool.ntp.org iburst'
 parted -a optimal /dev/nvme0n1
 ```
 
-6. Partition disk using `parted`.
+Partition disk using `parted`.
 
 ```sh
 unit mib
@@ -56,7 +53,7 @@ print
 quit
 ```
 
-7. Install system.
+Install system.
 
 ```sh
 # Create boot filesystem.
@@ -76,7 +73,6 @@ zfs create -o mountpoint=/home system/home
 zfs create -o mountpoint=/home/qis -o encryption=aes-256-gcm -o keyformat=passphrase -o keylocation=prompt system/home/qis
 zfs create -o mountpoint=/tmp -o compression=off -o sync=disabled system/tmp
 zfs create -o mountpoint=/opt -o compression=off system/opt
-zfs create -o mountpoint=/opt/data -o casesensitivity=insensitive system/opt/data
 zfs create -o mountpoint=/var/lib/libvirt/images system/images
 chmod 1777 /mnt/gentoo/tmp
 
@@ -193,7 +189,7 @@ echo "=sys-kernel/gentoo-sources-6.1.31 symlink" > /etc/portage/package.use/kern
 emerge -avnuU =sys-kernel/gentoo-sources-6.1.31 sys-kernel/linux-firmware
 
 # Configure kernel (see "Kernel" section for more details).
-curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
+curl -L https://raw.githubusercontent.com/qis/core/master/.core -o /usr/src/linux/.config
 cd /usr/src/linux
 make menuconfig
 
@@ -329,6 +325,8 @@ DHCP=yes
 EOF
 
 # Configure wireless.
+emerge -avn net-wireless/iw net-wireless/wpa_supplicant
+
 tee /etc/systemd/network/wlan0.network >/dev/null <<'EOF'
 [Match]
 Name=wlan0
@@ -381,6 +379,8 @@ EOF
 chmod +x /lib/systemd/system-sleep/wifi.sh
 
 # Configure sensors and fan.
+emerge -avn app-laptop/thinkfan
+
 tee /etc/modprobe.d/thinkpad.conf >/dev/null <<'EOF'
 options thinkpad_acpi fan_control=1
 EOF
@@ -413,6 +413,8 @@ HandleLidSwitchDocked=ignore
 EOF
 
 # Configure pulseaudio.
+emerge -avn media-sound/pulseaudio media-sound/sox
+
 systemctl --global enable pulseaudio pulseaudio.socket
 tee -a /etc/pulse/daemon.conf >/dev/null <<'EOF'
 default-sample-rate = 44100
@@ -427,6 +429,8 @@ export PYTHONPATH="${HOME}/.pip"
 EOF
 
 # Configure node.
+emerge -avn net-libs/nodejs
+
 npm config set prefix ~/.npm
 tee /etc/profile.d/npm.sh >/dev/null <<'EOF'
 export PATH="${PATH}:${HOME}/.npm/bin"
@@ -443,6 +447,8 @@ XDG_RUNTIME_DIR=/run/user/${UID}
 EOF
 
 # Configure desktop user directories.
+emerge -avn x11-misc/xdg-user-dirs
+
 tee /etc/xdg/user-dirs.defaults >/dev/null <<'EOF'
 DOWNLOAD=downloads
 DOCUMENTS=documents
@@ -548,7 +554,7 @@ umount -R /mnt/gentoo
 halt -p
 ```
 
-8. Configure system.
+Configure system.
 
 ```sh
 # Install SSH config.

@@ -24,7 +24,6 @@ dev-util/cmake
 dev-util/ninja
 dev-util/patchelf
 dev-vcs/git
-net-libs/nodejs
 sys-devel/clang
 sys-devel/llvm
 
@@ -49,17 +48,12 @@ media-libs/freetype
 media-libs/harfbuzz
 
 # Hardware
-app-laptop/thinkfan
 sys-apps/bolt
 sys-apps/hwinfo
 sys-apps/lm-sensors
 sys-apps/lshw
 sys-apps/usbutils
 sys-process/lsof
-
-# Multimedia
-media-sound/pulseaudio
-media-sound/sox
 
 # System
 app-admin/sudo
@@ -70,7 +64,6 @@ net-misc/openssh
 sys-apps/moreutils
 sys-auth/polkit
 sys-auth/seatd
-x11-misc/xdg-user-dirs
 
 # Tools
 app-admin/ccze
@@ -85,7 +78,3 @@ sys-apps/pv
 sys-process/htop
 sys-process/time
 virtual/w3m
-
-# Wireless
-net-wireless/iw
-net-wireless/wpa_supplicant
