@@ -6,5 +6,7 @@ app-misc/brightnessctl ~amd64
 media-libs/libdisplay-info ~amd64
 dev-libs/hyprland-protocols ~amd64
 dev-libs/libliftoff ~amd64
+dev-libs/libratbag ~amd64
+app-misc/piper ~amd64
 dev-libs/date ~amd64
 x11-misc/cdm ~amd64

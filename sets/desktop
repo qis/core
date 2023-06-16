@@ -43,6 +43,7 @@ x11-themes/adwaita-qt
 
 # System
 app-misc/brightnessctl
+app-misc/piper
 
 # Applications
 gnome-base/dconf

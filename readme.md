@@ -703,6 +703,10 @@ emerge -ac
 emerge -avn @desktop
 emerge -ac
 
+# Configure ratbag.
+systemctl enable ratbagd
+gpasswd -a qis plugdev
+
 # Create view script.
 tee /etc/bash_completion.d/view >/dev/null <<'EOF'
 complete -f view
