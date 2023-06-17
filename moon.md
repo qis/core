@@ -2,7 +2,7 @@
 QEMU virtualization server setup instructions.
 
 * UEFI Menu: F2 or DEL (CTRL+ALT+DEL after POST)
-* BOOT Menu: ESC
+* BOOT Menu: F1 or ESC
 
 ```
 CPU: Intel Core i7-8700K
@@ -14,26 +14,9 @@ RAM: 32 GiB
 
 ## Benchmarks
 1. [Unigine](https://benchmark.unigine.com/)
-
-```
-Unigine Sanctuary 2.3
-Unigine Tropics 1.3
-Unigine Heaven 4.0
-Unigine Valley 1.0
-Unigine Superposition 1.1
-```
-
-2. [PassMark](https://www.passmark.com/products/performancetest/download.php)
-
-```
-PassMark PerformanceTest 11.01002
-```
-
-3. [Geekbench](https://www.geekbench.com/download/)
-
-```
-Geekbench 6.1.0
-```
+2. [GravityMark](https://gravitymark.tellusim.com/)
+3. [PassMark](https://www.passmark.com/products/performancetest/download.php)
+4. [Geekbench](https://www.geekbench.com/download/)
 
 Use "Admin CD" from <https://www.gentoo.org/downloads/> to create a memory stick.
 
@@ -60,18 +43,36 @@ ls /sys/firmware/efi
 # Synchronize time.
 chronyd -q 'server 0.gentoo.pool.ntp.org iburst'
 
-# Partition disk.
+# List block devices.
+lsblk
+
+# Partition disk 0.
 parted -a optimal /dev/nvme0n1
 ```
 
-Partition disk using `parted`.
-
-```sh
+```
 unit mib
 mklabel gpt
-mkpart boot 1 1025
-mkpart swap linux-swap 1025 41985
-mkpart root 41985 -1
+mkpart boot 1 513
+mkpart swap linux-swap 513 16897
+mkpart root 16897 953857
+set 1 boot on
+set 2 swap on
+print
+quit
+```
+
+```sh
+# Partition disk 1.
+parted -a optimal /dev/nvme1n1
+```
+
+```
+unit mib
+mklabel gpt
+mkpart boot 1 513
+mkpart swap linux-swap 513 16897
+mkpart root 16897 953857
 set 1 boot on
 set 2 swap on
 print
@@ -81,26 +82,28 @@ quit
 Install system.
 
 ```sh
-# Create boot filesystem.
+# Create boot filesystems.
 mkfs.fat -F32 /dev/nvme0n1p1
+dd if=/dev/nvme0n1p1 of=/dev/nvme1n1p1 bs=8M
 
 # Enable swap filesystem.
 mkswap /dev/nvme0n1p2
+mkswap /dev/nvme1n1p2
 swapon /dev/nvme0n1p2
+swapon /dev/nvme1n1p2
 
 # Create root filesystem.
 modprobe zfs
-zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
+zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none \
+  -R /mnt/gentoo system /dev/nvme0n1p3 /dev/nvme1n1p3
 
 # Create system datasets.
 zfs create -o mountpoint=/ system/root
 zfs create -o mountpoint=/home system/home
 zfs create -o mountpoint=/tmp -o compression=off -o sync=disabled system/tmp
-zfs create -o mountpoint=/opt -o compression=off system/opt
-zfs create -o mountpoint=/var/lib/libvirt/images system/images
 chmod 1777 /mnt/gentoo/tmp
 
-# Mount filesystems.
+# Mount boot filesystem.
 mkdir /mnt/gentoo/boot
 mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
 
@@ -140,20 +143,31 @@ chroot /mnt/gentoo /bin/bash
 source /etc/profile
 export PS1="(chroot) ${PS1}"
 
+# Generate locale.
+tee /etc/locale.gen >/dev/null <<'EOF'
+en_US.UTF-8 UTF-8
+ru_RU.UTF-8 UTF-8
+EOF
+
+locale-gen
+source /etc/profile
+export PS1="(chroot) ${PS1}"
+
 # Configure mouting points.
 tee /etc/fstab >/dev/null <<'EOF'
 /dev/nvme0n1p1 /boot vfat defaults,noatime,noauto 0 2
 /dev/nvme0n1p2 none  swap sw                      0 0
+/dev/nvme1n1p2 none  swap sw                      0 0
 EOF
 
 # Create make.conf.
 tee /etc/portage/make.conf >/dev/null <<'EOF'
 # Compiler
-CFLAGS="-march=znver3 -O2 -pipe"
+CFLAGS="-march=skylake -O2 -pipe"
 CXXFLAGS="${CFLAGS}"
 FCFLAGS="${CFLAGS}"
 FFLAGS="${CFLAGS}"
-MAKEOPTS="-j17"
+MAKEOPTS="-j13"
 
 # Locale
 LC_MESSAGES=C
@@ -171,8 +185,7 @@ LUA_SINGLE_TARGET="luajit"
 VIDEO_CARDS="fbdev"
 
 # System
-USE="alsa bash-completion caps dbus encode icu idn -nls opencl policykit -sendmail udev unicode"
-USE="${USE} aac flac id3tag mad mp3 mp4 mpeg ogg opus pulseaudio sound theora vorbis x264 x265 xml"
+USE="alsa bash-completion caps dbus encode icu idn -nls opencl policykit -sendmail udev unicode xml"
 USE="${USE} -X -gui -gnome -gtk -cairo -pango -kde -kwallet -plasma -qt5 -qml -sdl -xcb"
 USE="${USE} -branding -doc -examples -test -handbook -telemetry"
 EOF
@@ -187,19 +200,13 @@ eselect news read
 # Create sets directory.
 mkdir /etc/portage/sets
 
-# Create @core set.
-curl -L https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/core \
-     -o /etc/portage/package.accept_keywords/core
-curl -L https://raw.githubusercontent.com/qis/core/master/package.mask/core \
-     -o /etc/portage/package.mask/core
-curl -L https://raw.githubusercontent.com/qis/core/master/package.use/core \
-     -o /etc/portage/package.use/core
-curl -L https://raw.githubusercontent.com/qis/core/master/sets/core \
-     -o /etc/portage/sets/core
-
-# Install freetype and hafbuzz.
-USE="-harfbuzz" emerge -1 media-libs/freetype
-emerge media-libs/harfbuzz && emerge media-libs/freetype
+# Create @moon set.
+curl -L https://raw.githubusercontent.com/qis/core/master/package.mask/moon \
+     -o /etc/portage/package.mask/moon
+curl -L https://raw.githubusercontent.com/qis/core/master/package.use/moon \
+     -o /etc/portage/package.use/moon
+curl -L https://raw.githubusercontent.com/qis/core/master/sets/moon \
+     -o /etc/portage/sets/moon
 
 # Verify that the @world set has no conflicts.
 emerge -pve @world
@@ -216,7 +223,7 @@ cd /usr/src/linux
 make menuconfig
 
 # Build and install kernel.
-make -j17
+make -j13
 make modules_prepare
 make modules_install
 make install
@@ -226,7 +233,7 @@ emerge -ave @world
 emerge -ac
 
 # Install @core set.
-emerge -avn @core
+emerge -avn @moon
 emerge -ac
 
 # Enable filesystem services.
@@ -249,11 +256,9 @@ GRUB_DEFAULT=0
 GRUB_TIMEOUT=1
 GRUB_TIMEOUT_STYLE=menu
 GRUB_DEVICE="system/root"
-GRUB_FONT="/boot/grub/fonts/terminus.pf2"
 GRUB_CMDLINE_LINUX="by=id init=/usr/lib/systemd/systemd"
 GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} elevator=noop net.ifnames=0"
 GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} acpi_enforce_resources=lax"
-GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} amdgpu.gpu_recovery=1"
 GRUB_CMDLINE_LINUX_DEFAULT="quiet"
 GRUB_DISABLE_LINUX_PARTUUID=true
 GRUB_DISABLE_LINUX_UUID=true
@@ -264,7 +269,6 @@ EOF
 
 # Install GRUB bootloader.
 grub-install --efi-directory=/boot --removable
-grub-mkfont -s 32 -o /boot/grub/fonts/terminus.pf2 /usr/share/fonts/terminus/ter-u32b.otb
 
 # Add "nvme" to "modules" in bliss-initramfs settings.
 jq '.modules.files += [ "nvme" ]' \
@@ -280,6 +284,12 @@ grub-mkconfig -o /boot/grub/grub.cfg
 sed 's; root=ZFS=[^ ]*; root=system/root;' -i /boot/grub/grub.cfg
 grep vmlinuz /boot/grub/grub.cfg
 
+# Unmount boot filesystem.
+umount /boot
+
+# Synchronize boot filesystems.
+dd if=/dev/nvme0n1p1 of=/dev/nvme1n1p1 bs=8M
+
 # Configure modules.
 mkdir /etc/modprobe.d
 tee /etc/modprobe.d/blacklist.conf >/dev/null <<'EOF'
@@ -291,32 +301,6 @@ tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
 vm.max_map_count=2147483642
 vm.swappiness=1
 EOF
-
-# Generate locale.
-tee /etc/locale.gen >/dev/null <<'EOF'
-en_US.UTF-8 UTF-8
-ru_RU.UTF-8 UTF-8
-EOF
-
-locale-gen
-
-# Configure git.
-git config --global core.eol lf
-git config --global core.autocrlf false
-git config --global core.filemode false
-git config --global pull.rebase false
-
-# Configure nvim.
-git clone --recursive https://github.com/qis/vim /etc/xdg/nvim
-
-# Build nvim telescope fzf plugin.
-cd /etc/xdg/nvim/pack/plugins/opt/telescope-fzf-native
-cmake -DCMAKE_BUILD_TYPE=Release -B build
-cmake --build build
-
-# Create nvim symlinks.
-ln -s ../../etc/xdg/nvim /root/.config/nvim
-ln -s nvim /usr/bin/vim
 
 # Configure editor.
 echo "EDITOR=/usr/bin/vim" > /etc/env.d/01editor
@@ -343,20 +327,16 @@ tee /etc/systemd/network/eth0.network >/dev/null <<'EOF'
 Name=eth0
 
 [Network]
-DHCP=yes
+Address=10.0.0.10/24
+Gateway=10.0.0.1
+DNS=10.0.0.1
 EOF
-# TODO: Switch to static IP address!
 
 # Configure python.
 pip config set global.target ~/.pip
 tee /etc/profile.d/pip.sh >/dev/null <<'EOF'
 export PATH="${PATH}:${HOME}/.pip/bin"
 export PYTHONPATH="${HOME}/.pip"
-EOF
-
-# Configure application path.
-tee /etc/profile.d/path.sh >/dev/null <<'EOF'
-export PATH="${HOME}/.local/bin:${PATH}"
 EOF
 
 # Configure desktop runtime directory.
@@ -465,6 +445,30 @@ systemctl preset-all --preset-mode=enable-only
 # Enable time synchronization.
 systemctl enable systemd-timesyncd
 
+# Create vm script.
+tee /usr/bin/vm >/dev/null <<'EOF'
+#!/bin/sh
+if [ "${1}" = "view" ]; then
+  name="${2}"
+  if [ -z "${name}" ]; then
+    name=$(virsh -c qemu:///system list --name | head -1)
+    if [ -z "${name}" ]; then
+      echo "error: no virtual machine running" 1>&2
+      exit 1
+    fi
+  fi
+  name=$(virsh -c qemu:///system list --name | grep -E "^${name}$")
+  if [ -z "${name}" ]; then
+    echo "error: virtual machine not running" 1>&2
+    exit 1
+  fi
+  hyprctl dispatch exec "virt-viewer -c qemu:///system -daf --spice-preferred-compression=off ${name}" >/dev/null
+else
+  virsh -c qemu:///system $*
+fi
+EOF
+chmod +x /usr/bin/vm
+
 # Log out as root.
 exit
 ```
@@ -473,57 +477,15 @@ exit
 Configure user settings.
 
 ```sh
-# Create user directories.
-LC_ALL=C xdg-user-dirs-update --force
-mkdir -p ~/.local/bin
-
 # Configure pip.
 rm -rf ~/.pip; mkdir ~/.pip
 pip config set global.target ~/.pip
 
-# Configure npm.
-rm -rf ~/.npm; mkdir ~/.npm
-npm config set prefix ~/.npm
+# Create downloads directory.
+mkdir ~/downloads
 
-# Install npm packages.
-npm install -g npm
-npm install -g \
-  typescript typescript-language-server eslint prettier terser \
-  rollup @rollup/plugin-typescript rollup-plugin-terser \
-  rollup-plugin-serve rollup-plugin-livereload neovim
-
-# Configure git.
-git config --global core.eol lf
-git config --global core.autocrlf false
-git config --global core.filemode false
-git config --global pull.rebase false
-
-# Configure nvim.
-git clone --recursive git@github.com:qis/vim ~/.config/nvim
-
-# Build nvim telescope fzf plugin.
-cd ~/.config/nvim/pack/plugins/opt/telescope-fzf-native
-cmake -DCMAKE_BUILD_TYPE=Release -B build
-cmake --build build
-
-# Build nvim treesitter libraries.
-nvim
-```
-
-```
-:TSInstall c
-:TSInstall cpp
-:TSInstall lua
-:TSInstall javascript
-:TSInstall typescript
-```
-
-```sh
-# Configure audio output.
-mixer
-
-# Test audio output.
-play ~/.local/music/consciousness.mp3
+# Download windows virtio drivers.
+curl -L https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso -o downloads/VirtIO.iso
 
 # Reboot system.
 sudo reboot
@@ -548,24 +510,22 @@ app-emulation/qemu qemu_user_targets_aarch64
 app-emulation/qemu qemu_user_targets_arm
 
 # Global Options
-app-emulation/qemu filecaps gtk lzo vnc
+app-emulation/qemu filecaps lzo vnc
 
 # Local Options
-app-emulation/qemu aio bpf curl fdt fuse gnutls io-uring ncurses
-app-emulation/qemu pin-upstream-blobs sdl sdl-image spice slirp usb
-app-emulation/qemu usbredir vhost-net virgl virtfs vte xattr
+app-emulation/qemu aio alsa bpf curl fdt fuse gnutls io-uring ncurses
+app-emulation/qemu pin-upstream-blobs spice slirp usb usbredir vhost-net virtfs xattr
 
 # Virt-Manager
 app-crypt/swtpm gnutls
 net-dns/dnsmasq script
 net-libs/gnutls pkcs11 tools
-net-misc/spice-gtk gtk3 usbredir lz4
 app-emulation/libvirt fuse libvirtd pcap qemu virt-network zfs
 app-emulation/virt-viewer libvirt spice
 EOF
 
 # Install virtualization ports.
-emerge -avn app-emulation/{qemu,virt-manager,virt-viewer} app-crypt/swtpm
+emerge -avn app-emulation/{qemu,libvirt} app-crypt/swtpm
 
 # Configure qemu binary formats.
 grep -E '^:qemu-(aarch64|arm):' /usr/share/qemu/binfmt.d/qemu.conf > /etc/binfmt.d/qemu.conf
@@ -584,11 +544,86 @@ udevadm trigger -c add /dev/kvm
 systemctl enable libvirtd
 systemctl enable libvirt-guests
 
-# Change permissions.
-chown -R qis:qemu /var/lib/libvirt/images
+# Create qemu dataset.
+zfs create -o mountpoint=none system/qemu
 
 # Reboot system.
 reboot
+```
+
+Open "Virtual Machine Manager" on another machine.
+
+```
+File > Add Connection...
+Hypervisor: Custom URI...
+Autoconnect: [x]
+Custom URI: qemu+ssh://qis@moon/system
+QEMU/KVM: moon: Right Click > Details
++ Overview
+  Name: moon
++ Virtual Networks
+  + default
+    Stop Network
+    XML: 10.0.10.1/24 (.100 - .200)
+    Apply
+    Start Network
++ Storage
+  + default
+    Stop Pool
+    Delete Pool
+  + Add Pool
+    Name: default
+    Type: zfs: ZFS Pool
+    Source Name: system/qemu
+  + default
+    Autostart: [x] On Boot
+  + Add Pool
+    Name: downloads
+    Type: dir: Filesystem Directory
+    Target Path: /home/qis/downloads
+```
+
+```sh
+# Reboot system.
+reboot
+```
+
+## Administration
+Update virtual machine.
+
+```sh
+# Shutdown virtual machines.
+vm shutdown windows-10-amd
+vm shutdown windows-10-nvidia
+
+# Destroy cloned drives.
+sudo zfs destroy system/qemu/windows-10-amd
+sudo zfs destroy system/qemu/windows-10-nvidia
+
+# Start virtual machine and install updates.
+vm start windows-10
+
+# Shutdown virtual machine.
+vm shutdown windows-10
+
+# Create virtual machine snapshot.
+sudo zfs snapshot system/qemu/windows-10@`date +%F`
+
+# Clone virtual machine drive.
+sudo zfs clone system/qemu/windows-10@`date +%F` system/qemu/windows-10-amd
+sudo zfs clone system/qemu/windows-10@`date +%F` system/qemu/windows-10-nvidia
+
+# Start AMD virtual machine and re-install drivers.
+vm start windows-10-amd
+
+# Shutdown AMD virtual machine.
+vm shutdown windows-10-amd
+
+# Start NVIDIA virtual machine and re-install drivers.
+vm start windows-10-nvidia
+
+# Shutdown NVIDIA virtual machine.
+vm shutdown windows-10-nvidia
 ```
 
 ## Kernel

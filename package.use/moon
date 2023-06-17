@@ -1,0 +1,21 @@
+# Bootloader
+sys-boot/grub libzfs -sdl
+
+# Compression
+app-arch/p7zip rar
+dev-libs/libzip lzma zstd tools
+sys-libs/zlib minizip
+
+# Development
+dev-db/sqlite readline secure-delete tools
+
+# Filesystem
+sys-fs/zfs pam rootfs
+
+# Hardware
+sys-process/lsof rpc
+
+# System
+dev-libs/glib mime
+sys-apps/moreutils -perl
+sys-auth/seatd builtin server
