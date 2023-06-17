@@ -648,4 +648,11 @@ Device Drivers
       -> USB Raw Gadget (USB_RAW_GADGET [=y])
 -> X86 Platform Specific Device Drivers (X86_PLATFORM_DEVICES [=y])
   -> ThinkPad ACPI Laptop Extras (THINKPAD_ACPI [=m])
+-> IOMMU Hardware Support (IOMMU_SUPPORT [=y])
+  -> AMD IOMMU support (AMD_IOMMU [=y])
+    -> AMD IOMMU Version 2 driver (AMD_IOMMU_V2 [=y])
+  -> Support for Intel IOMMU using DMA Remapping Devices (INTEL_IOMMU [=y])
+    -> Support for Shared Virtual Memory with Intel IOMMU (INTEL_IOMMU_SVM [=y])
+    -> Enable Intel DMA Remapping Devices by default (INTEL_IOMMU_DEFAULT_ON [=y])
+  -> Support for Interrupt Remapping (IRQ_REMAP [=y])
 ```
