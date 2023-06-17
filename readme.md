@@ -35,13 +35,14 @@ ls /sys/firmware/efi
 # Synchronize time.
 chronyd -q 'server 0.gentoo.pool.ntp.org iburst'
 
+# List block devices.
+lsblk
+
 # Partition disk.
 parted -a optimal /dev/nvme0n1
 ```
 
-Partition disk using `parted`.
-
-```sh
+```
 unit mib
 mklabel gpt
 mkpart boot 1 1025
@@ -76,7 +77,7 @@ zfs create -o mountpoint=/opt -o compression=off system/opt
 zfs create -o mountpoint=/var/lib/libvirt/images system/images
 chmod 1777 /mnt/gentoo/tmp
 
-# Mount filesystems.
+# Mount boot filesystem.
 mkdir /mnt/gentoo/boot
 mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
 
@@ -113,6 +114,16 @@ echo "*/* `cpuid2cpuflags`" > /mnt/gentoo/etc/portage/package.use/flags
 
 # Chroot into system.
 chroot /mnt/gentoo /bin/bash
+source /etc/profile
+export PS1="(chroot) ${PS1}"
+
+# Generate locale.
+tee /etc/locale.gen >/dev/null <<'EOF'
+en_US.UTF-8 UTF-8
+ru_RU.UTF-8 UTF-8
+EOF
+
+locale-gen
 source /etc/profile
 export PS1="(chroot) ${PS1}"
 
@@ -269,14 +280,6 @@ tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
 vm.max_map_count=2147483642
 vm.swappiness=1
 EOF
-
-# Generate locale.
-tee /etc/locale.gen >/dev/null <<'EOF'
-en_US.UTF-8 UTF-8
-ru_RU.UTF-8 UTF-8
-EOF
-
-locale-gen
 
 # Configure git.
 git config --global core.eol lf
@@ -759,6 +762,9 @@ XCURSOR_THEME=Adwaita
 XCURSOR_SIZE=24
 EOF
 
+# Configure cups.
+systemctl enable cups
+
 # Update environment.
 env-update
 source /etc/profile
@@ -817,6 +823,15 @@ flatpak install flathub \
 
 flatpak install flathub \
   org.openmw.OpenMW
+
+# Connect to http://localhost:631/admin and add printer.
+# [Find New Printers]
+#  Connection: socket://10.0.0.99
+#  Name: Note
+#  Description: Canon MF244dw
+#  Location: Local Printer
+#  Make: Generic
+#  Model: Generic PCL Laser Printer
 ```
 
 ## Virtualization
