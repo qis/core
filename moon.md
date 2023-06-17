@@ -259,7 +259,7 @@ GRUB_DEVICE="system/root"
 GRUB_CMDLINE_LINUX="by=id init=/usr/lib/systemd/systemd"
 GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} elevator=noop net.ifnames=0"
 GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} acpi_enforce_resources=lax"
-GRUB_CMDLINE_LINUX_DEFAULT="quiet"
+GRUB_CMDLINE_LINUX_DEFAULT="iommu=pt intel_iommu=on pcie_acs_override=downstream,multifunction quiet"
 GRUB_DISABLE_LINUX_PARTUUID=true
 GRUB_DISABLE_LINUX_UUID=true
 GRUB_DISABLE_OS_PROBER=true
@@ -469,6 +469,9 @@ fi
 EOF
 chmod +x /usr/bin/vm
 
+# Verify that IOMMU is enabled.
+dmesg | grep 'IOMMU enabled'
+
 # Log out as root.
 exit
 ```
@@ -588,6 +591,14 @@ QEMU/KVM: moon: Right Click > Details
 reboot
 ```
 
+## GPU Pass-Through
+Configure GPU pass-through.
+
+```sh
+# List IOMMU groups.
+for d in /sys/kernel/iommu_groups/*/devices/*; do n=${d#*/iommu_groups/*}; n=${n%%/*}; printf 'IOMMU Group %s ' "$n"; lspci -nns "${d##*/}"; done
+```
+
 ## Administration
 Update virtual machine.
 
@@ -655,4 +666,11 @@ Device Drivers
     -> Support for Shared Virtual Memory with Intel IOMMU (INTEL_IOMMU_SVM [=y])
     -> Enable Intel DMA Remapping Devices by default (INTEL_IOMMU_DEFAULT_ON [=y])
   -> Support for Interrupt Remapping (IRQ_REMAP [=y])
+-> VFIO Non-Privileged userspace driver framework (VFIO [=m])
+  -> VFIO No-IOMMU support (VFIO_NOIOMMU [=y])
+  -> Generic VFIO support for any PCI device (VFIO_PCI [=m])
+    -> Generic VFIO PCI support for VGA devices (VFIO_PCI_VGA [=y])
+    -> Generic VFIO PCI extensions for Intel graphics (GVT-d) (VFIO_PCI_IGD [=y])
+  -> VFIO support for MLX5 PCI devices (MLX5_VFIO_PCI [=m])
+  -> Mediated device driver framework (VFIO_MDEV [=n])
 ```
