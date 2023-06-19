@@ -644,9 +644,9 @@ reboot
     - Threads: 2
   - Remove "USB Redirector" devices.
   - Apply Windows specific changes.
-    - Change "Disk 1" device to VirtIO.
-    - Change "TPM" device to TIS v2.0.
-    - Add "Storage" device: CDROM `VirtIO.iso`
+    - Add CDROM "Storage" device and mount `VirtIO.iso`.
+    - Change "Disk 1" device type to VirtIO.
+    - Change "TPM" device model to TIS v2.0.
 
 * Install virtual machine.
   - Use `E:\amd64\win10\vioscsi.inf` SCSI driver on Windows 10.
@@ -665,17 +665,17 @@ reboot
   - Remove "Channel (spice)" device.
 
 * Create "clean" snapshot.
-  - `zfs snapshot system/qemu/${os}-${version}@clean`
+  - Execute `zfs snapshot system/qemu/${os}-${version}@clean`.
 
 * Clone virtual machine with name `${os}-${version}-${gpu}`.
   - Do not clone any storage devices.
 
 * Synchronize virtual machine clone settings.
-  - `diff <(vm dumpxml ${os}-${version}) <(vm dumpxml ${os}-${version}-${gpu})`
+  - Execute `diff <(vm dumpxml ${os}-${version}) <(vm dumpxml ${os}-${version}-${gpu})`.
   - Everything except `<name>`, `<uuid>` and `<title>` must match.
 
 * Configure virtual machine clone.
-  - Execute `zfs snapshot system/qemu/${os}-${version}@$(date +%F)`
+  - Execute `zfs snapshot system/qemu/${os}-${version}@$(date +%F)`.
   - Execute `zfs clone system/qemu/${os}-${version}@$(date +%F) system/qemu/${os}-${version}-${gpu}`.
   - Change Disk 1/XML `system/qemu/${os}-${version}` to `system/qemu/${os}-${version}-${gpu}`.
   - Add "PCI Host Device" for each GPU related device.
@@ -689,7 +689,7 @@ reboot
   - Remove "Display" and "Graphics" devices.
 
 * Create "drivers" snapshot.
-  - `zfs snapshot system/qemu/${os}-${version}-${gpu}@drivers`
+  - Execute `zfs snapshot system/qemu/${os}-${version}-${gpu}@drivers`.
 
 <!--
 
