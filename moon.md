@@ -649,7 +649,6 @@ Install virtual machine.
     - Change "Disk 1" device to VirtIO.
     - Change "TPM" device to TIS v2.0.
     - Add "Storage" device: CDROM `VirtIO.iso`
-
 2. Install virtual machine.
   * Use `E:\amd64\win10\vioscsi.inf` SCSI driver on Windows 10.
   * Use `E:\amd64\win11\vioscsi.inf` SCSI driver on Windows 11.
@@ -658,30 +657,24 @@ Install virtual machine.
     - Disable NTP.
   * Activate Windows with WIN+R and `SLUI 4`.
   * Shutdown virtual machine.
-
 3. Configure virtual machine.
   * Execute `zfs rename system/qemu/${os}-${version}.qcow2 system/qemu/${os}-${version}`.
   * Change Disk 1/XML `system/qemu/${os}-${version}.qcow2` to `system/qemu/${os}-${version}`.
   * Change Overview/XML `<audio id="1" type="spice"/>` to `<audio id="1" type="none"/>`.
   * Add "USB Host Device" for connected keyboard and mouse.
   * Remove "Channel (spice)" device.
-
 4. Create "clean" snapshot.
   * `zfs snapshot system/qemu/${os}-${version}@clean`
-
 5. Clone virtual machine with name `${os}-${version}-${gpu}`.
   * Do not clone any storage devices.
-
 6. Synchronize virtual machine clone settings.
   * `diff <(vm dumpxml ${os}-${version}) <(vm dumpxml ${os}-${version}-${gpu})`
   * Everything except `<name>`, `<uuid>` and `<title>` must match.
-
 7. Configure virtual machine clone.
   * Execute `zfs snapshot system/qemu/${os}-${version}@$(date +%F)`
   * Execute `zfs clone system/qemu/${os}-${version}@$(date +%F) system/qemu/${os}-${version}-${gpu}`.
   * Change Disk 1/XML `system/qemu/${os}-${version}` to `system/qemu/${os}-${version}-${gpu}`.
   * Add "PCI Host Device" for each GPU related device.
-
 8. Start virtual machine clone and install drivers.
   * Reboot host before using an AMD GPU a second time.
   * If the device isn't recognized on Windows:
@@ -689,7 +682,6 @@ Install virtual machine.
     - Install official drivers from the vendor website.
   * Shutdown virtual machine clone.
   * Remove "Display" and "Graphics" devices.
-
 9. Create "drivers" snapshot.
   * `zfs snapshot system/qemu/${os}-${version}-${gpu}@drivers`
 
