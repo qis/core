@@ -498,15 +498,15 @@ dmesg | grep -i vga
 # List PCI devices.
 lspci -tv
 
-# Verify that all PCI devices are assigned to the vfio-pci driver.
-lspci -vs 00:01.0  # pcieport
-lspci -vs 00:01.1  # pcieport
-lspci -vs 01:00.0  # vfio-pci
-lspci -vs 01:00.1  # vfio-pci
-lspci -vs 02:00.0  # vfio-pci
-lspci -vs 02:00.1  # vfio-pci
-lspci -vs 02:00.2  # xhci_hcd
-lspci -vs 02:00.3  # i2c_nvidia_gpu, nvidia-gpu
+# Verify PCI devices driver assignment.
+lspci -vs 00:01.0  # Kernel driver in use: pcieport
+lspci -vs 00:01.1  # Kernel driver in use: pcieport
+lspci -vs 01:00.0  # Kernel driver in use: vfio-pci
+lspci -vs 01:00.1  # Kernel driver in use: vfio-pci
+lspci -vs 02:00.0  # Kernel driver in use: vfio-pci
+lspci -vs 02:00.1  # Kernel driver in use: vfio-pci
+lspci -vs 02:00.2  # Kernel driver in use: vfio-pci
+lspci -vs 02:00.3  # Kernel driver in use: vfio-pci
 
 # Log out as root.
 exit
