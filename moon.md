@@ -222,6 +222,9 @@ curl -L https://raw.githubusercontent.com/qis/core/master/.moon -o /usr/src/linu
 cd /usr/src/linux
 make menuconfig
 
+# TODO: Remove this!
+# rm -rf /lib/modules/6.1.31-gentoo
+
 # Build and install kernel.
 make -j13
 make modules_prepare
@@ -250,21 +253,46 @@ mount -o remount,rw /sys/firmware/efi/efivars/
 
 # Create GRUB config.
 tee /etc/default/grub >/dev/null <<'EOF'
-GRUB_DISTRIBUTOR="Gentoo"
-GRUB_SAVEDEFAULT=true
+GRUB_GFXPAYLOAD_LINUX=text
+GRUB_TERMINAL=console
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=1
-GRUB_TIMEOUT_STYLE=menu
+GRUB_TIMEOUT_STYLE=hidden
+GRUB_DISTRIBUTOR="Gentoo"
 GRUB_DEVICE="system/root"
+GRUB_DISABLE_UUID=true
+GRUB_DISABLE_SUBMENU=true
+GRUB_DISABLE_RECOVERY=true
+GRUB_DISABLE_OS_PROBER=true
 GRUB_CMDLINE_LINUX="by=id init=/usr/lib/systemd/systemd"
 GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} elevator=noop net.ifnames=0"
 GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} acpi_enforce_resources=lax"
-GRUB_CMDLINE_LINUX_DEFAULT="iommu=pt intel_iommu=on pcie_acs_override=downstream,multifunction quiet"
-GRUB_DISABLE_LINUX_PARTUUID=true
-GRUB_DISABLE_LINUX_UUID=true
-GRUB_DISABLE_OS_PROBER=true
-GRUB_DISABLE_RECOVERY=true
-GRUB_DISABLE_SUBMENU=true
+GRUB_CMDLINE_LINUX_DEFAULT="iommu=pt intel_iommu=on pcie_acs_override=downstream,multifunction"
+GRUB_CMDLINE_LINUX_DEFAULT="${GRUB_CMDLINE_LINUX_DEFAULT} nofb nomodeset video=vesafb:off,efifb:off"
+EOF
+
+# List IOMMU groups.
+for d in /sys/kernel/iommu_groups/*/devices/*; do n=${d#*/iommu_groups/*}; n=${n%%/*}; printf 'IOMMU Group %s ' "$n"; lspci -nns "${d##*/}"; done
+
+# IOMMU Group 1
+# 00:01.0 PCI bridge [0604]: Intel Corporation 6th-10th Gen Core Processor PCIe Controller (x16) [8086:1901] (rev 07)
+# 00:01.1 PCI bridge [0604]: Intel Corporation Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x8) [8086:1905] (rev 07)
+# 01:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere [Radeon RX 470/480/570/570X/580/580X/590] [1002:67df] (rev c7)
+# 01:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere HDMI Audio [Radeon RX 470/480 / 570/580/590] [1002:aaf0]
+# 02:00.0 VGA compatible controller [0300]: NVIDIA Corporation TU116 [GeForce GTX 1660 SUPER] [10de:21c4] (rev a1)
+# 02:00.1 Audio device [0403]: NVIDIA Corporation TU116 High Definition Audio Controller [10de:1aeb] (rev a1)
+# 02:00.2 USB controller [0c03]: NVIDIA Corporation TU116 USB 3.1 Host Controller [10de:1aec] (rev a1)
+# 02:00.3 Serial bus controller [0c80]: NVIDIA Corporation TU116 USB Type-C UCSI Controller [10de:1aed] (rev a1)
+
+# IOMMU Group 11
+# 00:1f.0 ISA bridge [0601]: Intel Corporation Z370 Chipset LPC/eSPI Controller [8086:a2c9]
+# 00:1f.2 Memory controller [0580]: Intel Corporation 200 Series/Z370 Chipset Family Power Management Controller [8086:a2a1]
+# 00:1f.3 Audio device [0403]: Intel Corporation 200 Series PCH HD Audio [8086:a2f0]
+# 00:1f.4 SMBus [0c05]: Intel Corporation 200 Series/Z370 Chipset Family SMBus Controller [8086:a2a3]
+
+# Add VGA PCI IDs to VFIO.
+tee -a /etc/default/grub >/dev/null <<'EOF'
+GRUB_CMDLINE_LINUX_DEFAULT="${GRUB_CMDLINE_LINUX_DEFAULT} vfio-pci.ids=8086:1901,8086:1905,1002:67df,1002:aaf0,10de:21c4,10de:1aeb,10de:1aec,10de:1aed"
 EOF
 
 # Install GRUB bootloader.
@@ -276,8 +304,12 @@ jq '.modules.files += [ "nvme" ]' \
   /etc/bliss-initramfs/settings.json
 
 # Generate kernel initarmfs.
+# emerge -av @module-rebuild
 bliss-initramfs -k 6.1.31-gentoo
 mv initrd-6.1.31-gentoo /boot/
+
+# TODO: Remove this!
+rm -f /boot/*.old
 
 # Update GRUB config.
 grub-mkconfig -o /boot/grub/grub.cfg
@@ -472,6 +504,22 @@ chmod +x /usr/bin/vm
 # Verify that IOMMU is enabled.
 dmesg | grep 'IOMMU enabled'
 
+# List VGA modules.
+dmesg | grep -i vga
+
+# List PCI devices.
+lspci -tv
+
+# Verify that all PCI devices are assigned to the vfio-pci driver.
+lspci -vs 00:01.0  # pcieport
+lspci -vs 00:01.1  # pcieport
+lspci -vs 01:00.0  # vfio-pci
+lspci -vs 01:00.1  # vfio-pci
+lspci -vs 02:00.0  # vfio-pci
+lspci -vs 02:00.1  # vfio-pci
+lspci -vs 02:00.2  # xhci_hcd
+lspci -vs 02:00.3  # i2c_nvidia_gpu, nvidia-gpu
+
 # Log out as root.
 exit
 ```
@@ -591,51 +639,78 @@ QEMU/KVM: moon: Right Click > Details
 reboot
 ```
 
-## GPU Pass-Through
-Configure GPU pass-through.
+Install virtual machine.
 
-```sh
-# List IOMMU groups.
-for d in /sys/kernel/iommu_groups/*/devices/*; do n=${d#*/iommu_groups/*}; n=${n%%/*}; printf 'IOMMU Group %s ' "$n"; lspci -nns "${d##*/}"; done
-```
+1. Create a virtual machine.
+  * RAM: 24576 MiB
+  * CPU: 12
+  * HDD: 20 GiB (64 GiB for Windows 10, 128 GiB for Windows 11)
+  * Name: `${os}-${version}` (major version or no version for rolling release)
+  * [x] Customize configuration before install
+  * Network selection: Isolated network (for Windows)
+  * Enter Overview/Title.
+  * Select Overview/Firmware:
+    - UEFI x8_64: `/usr/share/edk2-ovmf/OVMF_CODE.fd`
+    - UEFI x8_64: `/usr/share/edk2-ovmf/OVMF_CODE.secboot.fd` (for Windows 11)
+  * Change CPUs/Topology:
+    - Sockets: 1
+    - Cores: 6
+    - Threads: 2
+  * Remove "USB Redirector" devices.
+  * Apply Windows specific changes.
+    - Change "Disk 1" device to VirtIO.
+    - Change "TPM" device to TIS v2.0.
+    - Add "Storage" device: CDROM `VirtIO.iso`
 
-## Administration
-Update virtual machine.
+2. Install virtual machine.
+  * Use `E:\amd64\win10\vioscsi.inf` SCSI driver on Windows 10.
+  * Use `E:\amd64\win11\vioscsi.inf` SCSI driver on Windows 11.
+  * Activate Windows with WIN+R and `SLUI 4`.
+  * Shutdown virtual machine.
 
-```sh
-# Shutdown virtual machines.
-vm shutdown windows-10-amd
-vm shutdown windows-10-nvidia
+3. Configure virtual machine.
+  * Execute `zfs rename system/qemu/${os}-${version}.qcow2 system/qemu/${os}-${version}`.
+  * Change Disk 1/XML `system/qemu/${os}-${version}.qcow2` to `system/qemu/${os}-${version}`.
+  * Change Overview/XML `<audio id="1" type="spice"/>` to `<audio id="1" type="none"/>`.
+  * Add "USB Host Device" for connected keyboard and mouse.
+  * Remove "Channel (spice)" device.
 
-# Destroy cloned drives.
-sudo zfs destroy system/qemu/windows-10-amd
-sudo zfs destroy system/qemu/windows-10-nvidia
+4. Create "clean" snapshot.
+  * `zfs snapshot system/qemu/${os}-${version}@clean`
 
-# Start virtual machine and install updates.
-vm start windows-10
+5. Clone virtual machine with name `${os}-${version}-${gpu}`.
+  * Do not clone any storage devices.
 
-# Shutdown virtual machine.
-vm shutdown windows-10
+6. Synchronize virtual machine clone settings.
+  * `diff <(vm dumpxml ${os}-${version}) <(vm dumpxml ${os}-${version}-${gpu})`
+  * Everything except `<name>`, `<uuid>` and `<title>` must match.
 
-# Create virtual machine snapshot.
-sudo zfs snapshot system/qemu/windows-10@`date +%F`
+7. Configure virtual machine clone.
+  * Execute `zfs snapshot system/qemu/${os}-${version}@$(date +%F)`
+  * Execute `zfs clone system/qemu/${os}-${version}@$(date +%F) system/qemu/${os}-${version}-${gpu}`.
+  * Change Disk 1/XML `system/qemu/${os}-${version}` to `system/qemu/${os}-${version}-${gpu}`.
+  * Add "PCI Host Device" for each GPU related device.
 
-# Clone virtual machine drive.
-sudo zfs clone system/qemu/windows-10@`date +%F` system/qemu/windows-10-amd
-sudo zfs clone system/qemu/windows-10@`date +%F` system/qemu/windows-10-nvidia
+8. Start virtual machine clone and install drivers.
+  * Reboot host before using an AMD GPU a second time.
+  * If the device isn't recognized on Windows:
+    - Make sure the device is enabled in "Device Manager".
+    - Install official drivers from the vendor website.
+  * Shutdown virtual machine clone.
+  * Remove "Display" and "Graphics" devices.
 
-# Start AMD virtual machine and re-install drivers.
-vm start windows-10-amd
+9. Create "drivers" snapshot.
+  * `zfs snapshot system/qemu/${os}-${version}-${gpu}@drivers`
 
-# Shutdown AMD virtual machine.
-vm shutdown windows-10-amd
+<!--
 
-# Start NVIDIA virtual machine and re-install drivers.
-vm start windows-10-nvidia
+Change Windows 10 and 11 settings before re-creating virtual machine clones.
 
-# Shutdown NVIDIA virtual machine.
-vm shutdown windows-10-nvidia
-```
+* Configure Edge.
+* Accept `ssh moon` known key.
+* Change mouse pointer speed to 6.
+
+-->
 
 ## Kernel
 Configuration based on `dist-kernel` with the following changes.
@@ -650,6 +725,7 @@ Device Drivers
   -> Wireless WAN
     -> WWAN Driver Core (WWAN [=y])
       -> MediaTek PCIe 5G WWAN modem T7xx device (MTK_T7XX [=m])
+
 -> USB support (USB_SUPPORT [=y])
   -> OTG support (USB_OTG [=y])
   -> USB Gadget Support (USB_GADGET [=y])
@@ -657,8 +733,10 @@ Device Drivers
       -> HID function (USB_CONFIGFS_F_HID [=y])
     -> USB Gadget precomposed configurations
       -> USB Raw Gadget (USB_RAW_GADGET [=y])
+
 -> X86 Platform Specific Device Drivers (X86_PLATFORM_DEVICES [=y])
   -> ThinkPad ACPI Laptop Extras (THINKPAD_ACPI [=m])
+
 -> IOMMU Hardware Support (IOMMU_SUPPORT [=y])
   -> AMD IOMMU support (AMD_IOMMU [=y])
     -> AMD IOMMU Version 2 driver (AMD_IOMMU_V2 [=y])
@@ -666,11 +744,12 @@ Device Drivers
     -> Support for Shared Virtual Memory with Intel IOMMU (INTEL_IOMMU_SVM [=y])
     -> Enable Intel DMA Remapping Devices by default (INTEL_IOMMU_DEFAULT_ON [=y])
   -> Support for Interrupt Remapping (IRQ_REMAP [=y])
--> VFIO Non-Privileged userspace driver framework (VFIO [=m])
+
+-> VFIO Non-Privileged userspace driver framework (VFIO [=y])
   -> VFIO No-IOMMU support (VFIO_NOIOMMU [=y])
-  -> Generic VFIO support for any PCI device (VFIO_PCI [=m])
+  -> Generic VFIO support for any PCI device (VFIO_PCI [=y])
     -> Generic VFIO PCI support for VGA devices (VFIO_PCI_VGA [=y])
     -> Generic VFIO PCI extensions for Intel graphics (GVT-d) (VFIO_PCI_IGD [=y])
-  -> VFIO support for MLX5 PCI devices (MLX5_VFIO_PCI [=m])
+  -> VFIO support for MLX5 PCI devices (MLX5_VFIO_PCI [=n])
   -> Mediated device driver framework (VFIO_MDEV [=n])
 ```
