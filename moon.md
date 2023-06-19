@@ -653,6 +653,9 @@ Install virtual machine.
 2. Install virtual machine.
   * Use `E:\amd64\win10\vioscsi.inf` SCSI driver on Windows 10.
   * Use `E:\amd64\win11\vioscsi.inf` SCSI driver on Windows 11.
+  * Make sure the system time is correct across reboots.
+    - Set `HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation\RealTimeIsUniversal`.
+    - Disable NTP.
   * Activate Windows with WIN+R and `SLUI 4`.
   * Shutdown virtual machine.
 
