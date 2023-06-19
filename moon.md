@@ -12,12 +12,6 @@ VGA: 2560x1080 (74.991 Hz)
 RAM: 32 GiB
 ```
 
-## Benchmarks
-1. [Unigine](https://benchmark.unigine.com/)
-2. [GravityMark](https://gravitymark.tellusim.com/)
-3. [PassMark](https://www.passmark.com/products/performancetest/download.php)
-4. [Geekbench](https://www.geekbench.com/download/)
-
 Use "Admin CD" from <https://www.gentoo.org/downloads/> to create a memory stick.
 
 ```sh
