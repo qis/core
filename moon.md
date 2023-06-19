@@ -689,15 +689,85 @@ reboot
 * Create "drivers" snapshot.
   - Execute `zfs snapshot system/qemu/${os}-${version}-${gpu}@drivers`.
 
-<!--
+## Update
+Update virtual machines (Windows example).
 
-Change Windows 10 and 11 settings before re-creating virtual machine clones.
+```sh
+# Shutdown virtual machines.
+vm shutdown windows-11-nvidia
+vm shutdown windows-11-amd
+vm shutdown windows-11
+vm shutdown windows-10-nvidia
+vm shutdown windows-10-amd
+vm shutdown windows-10
+vm list --all
 
-* Configure Edge.
-* Accept `ssh moon` known key.
-* Change mouse pointer speed to 6.
+# Destroy virtual machine clone snapshots.
+zfs list -t snapshot
+sudo zfs destroy system/qemu/windows-11-nvidia@drivers
+sudo zfs destroy system/qemu/windows-11-amd@drivers
+sudo zfs destroy system/qemu/windows-10-nvidia@drivers
+sudo zfs destroy system/qemu/windows-10-amd@drivers
 
--->
+# Destroy virtual machine clone datasets.
+zfs list
+sudo zfs destroy system/qemu/windows-11-nvidia
+sudo zfs destroy system/qemu/windows-11-amd
+sudo zfs destroy system/qemu/windows-10-nvidia
+sudo zfs destroy system/qemu/windows-10-amd
+
+# Install Windows 10 updates and download new drivers.
+vm start windows-10
+vm shutdown windows-10
+vm list --all
+
+# Install Windows 11 updates and download new drivers.
+vm start windows-11
+vm shutdown windows-11
+vm list --all
+
+# Create virtual machine snapshots.
+sudo zfs snapshot system/qemu/windows-10@$(date +%F)
+sudo zfs snapshot system/qemu/windows-11@$(date +%F)
+
+# Create virtual machine clone datasets.
+sudo zfs clone system/qemu/windows-10@$(date +%F) system/qemu/windows-10-amd
+sudo zfs clone system/qemu/windows-10@$(date +%F) system/qemu/windows-10-nvidia
+sudo zfs clone system/qemu/windows-11@$(date +%F) system/qemu/windows-11-amd
+sudo zfs clone system/qemu/windows-11@$(date +%F) system/qemu/windows-11-nvidia
+
+# Install drivers for each virtual machine clone.
+# 1. Configure virtual machine clone.
+#    - Add "Graphics" device.
+#    - Change "Video" device model to QXL.
+#    - Change "NIC" network source to "Isolated network".
+# 2. Start virtual machine clone and install downloaded drivers.
+#    - Choose "Minimal" for AMD drivers.
+#    - Choose "NVIDIA Graphics Driver" and "Express" for NVIDIA drivers.
+#    - Do not let the installer reboot the system.
+#    - Shutdown virtual machine clone.
+# 3. Restart virtual machine clone until everything works.
+#    - Reboot host after using an AMD GPU in a VM without official vendor drivers.
+#    - Start virtual machine clone.
+#    - Remove "AMD Bug Report Tool" from the Start Menu.
+#    - Start "AMD Software: Adrenaline Edition".
+#      - Set "Check For Updates" to "Manual".
+#      - Disable "Issue Detection".
+#      - Disable "System Tray Menu".
+#      - Disable "Toast Notifications".
+#    - Start "NVIDIA Control Panel".
+#      - Unset "Desktop > Show Notification Tray Icon".
+#    - Delete `C:\AMD`, `C:\NVIDIA` and `%UserProfile%\Downloads\*.*`.
+#    - Shutdown virtual machine clone.
+# 4. Remove "Graphics" and "Video" devices.
+# 5. Change "NIC" network source to "Default".
+# 6. Restart virtual machine and install updates until everything works.
+# 7. Create virtual machine clone "drivers" snapshots.
+sudo zfs snapshot system/qemu/windows-10-amd@drivers
+sudo zfs snapshot system/qemu/windows-10-nvidia@drivers
+sudo zfs snapshot system/qemu/windows-11-amd@drivers
+sudo zfs snapshot system/qemu/windows-11-nvidia@drivers
+```
 
 ## Kernel
 Configuration based on `dist-kernel` with the following changes.
