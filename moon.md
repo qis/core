@@ -659,8 +659,8 @@ reboot
 
 * Configure virtual machine.
   - Execute `zfs rename system/qemu/${os}-${version}.qcow2 system/qemu/${os}-${version}`.
-  - Change Disk 1/XML `system/qemu/${os}-${version}.qcow2` to `system/qemu/${os}-${version}`.
-  - Change Overview/XML `<audio id="1" type="spice"/>` to `<audio id="1" type="none"/>`.
+  - Change "Disk 1" XML `system/qemu/${os}-${version}.qcow2` to `system/qemu/${os}-${version}`.
+  - Change "Overview" XML `<audio id="1" type="spice"/>` to `<audio id="1" type="none"/>`.
   - Add "USB Host Device" for connected keyboard and mouse.
   - Remove "Channel (spice)" device.
 
@@ -677,7 +677,7 @@ reboot
 * Configure virtual machine clone.
   - Execute `zfs snapshot system/qemu/${os}-${version}@$(date +%F)`.
   - Execute `zfs clone system/qemu/${os}-${version}@$(date +%F) system/qemu/${os}-${version}-${gpu}`.
-  - Change Disk 1/XML `system/qemu/${os}-${version}` to `system/qemu/${os}-${version}-${gpu}`.
+  - Change "Disk 1" XML `system/qemu/${os}-${version}` to `system/qemu/${os}-${version}-${gpu}`.
   - Add "PCI Host Device" for each GPU related device.
 
 * Start virtual machine clone and install drivers.
