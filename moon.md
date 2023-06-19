@@ -681,10 +681,8 @@ reboot
   - Add "PCI Host Device" for each GPU related device.
 
 * Start virtual machine clone and install drivers.
-  - Reboot host before using an AMD GPU a second time.
-  - If the device isn't recognized on Windows:
-    - Make sure the device is enabled in "Device Manager".
-    - Install official drivers from the vendor website.
+  - Reboot host after using an AMD GPU in a VM without official vendor drivers.
+  - Make sure the GPU is enabled in "Device Manager".
   - Shutdown virtual machine clone.
   - Remove "Display" and "Graphics" devices.
 
