@@ -12,6 +12,14 @@ VGA: 2560x1080 (74.991 Hz)
 RAM: 32 GiB
 ```
 
+Virtual machines.
+
+```
+10.0.10.10 Windows 10
+10.0.10.11 Windows 11
+10.0.10.12 Debian 12
+```
+
 Use "Admin CD" from <https://www.gentoo.org/downloads/> to create a memory stick.
 
 ```sh
@@ -642,6 +650,7 @@ reboot
     - Sockets: 1
     - Cores: 6
     - Threads: 2
+  - Add `<kvm><hidden state="on"/></kvm><ioapic driver="kvm"/>` to the `<features>` section.
   - Remove "USB Redirector" devices.
   - Apply Windows specific changes.
     - Add CDROM "Storage" device and mount `VirtIO.iso`.
@@ -655,7 +664,11 @@ reboot
     - Set `HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation\RealTimeIsUniversal`.
     - Disable NTP.
   - Activate Windows with WIN+R and `SLUI 4`.
-  - Shutdown virtual machine.
+  - Disable unwanted Windows Defender notifications.
+  - Configure static IP address.
+  - Disable system sounds.
+  - Disable sticky keys.
+  - Shutdown system.
 
 * Configure virtual machine.
   - Execute `zfs rename system/qemu/${os}-${version}.qcow2 system/qemu/${os}-${version}`.
@@ -688,6 +701,155 @@ reboot
 
 * Create "drivers" snapshot.
   - Execute `zfs snapshot system/qemu/${os}-${version}-${gpu}@drivers`.
+
+**NOTE**: Virtual machine clones that run Linux can share the same drive.
+
+Configure guest system.
+
+<details>
+<summary>Debian</summary>
+
+```sh
+# Show IP address.
+ip addr
+
+# Configure ssh.
+# scp ~/.ssh/id_rsa.pub qis@${ip}:.ssh/authorized_keys
+
+# Log in as user.
+# ssh qis@${ip}
+
+# Log in as root.
+sudo su -
+
+# Update system.
+apt update
+apt upgrade -y
+apt autoremove -y --purge
+
+# Install system packages.
+apt install -y --no-install-recommends apt-file ca-certificates curl file git htop \
+  man-db openssh-client p7zip-full pv spice-vdagent symlinks tmux tree tzdata vim xz-utils
+
+# Download apt-file(1) database.
+apt-file update
+
+# Configure sudo.
+EDITOR=tee visudo >/dev/null <<'EOF'
+Defaults env_keep += "LANG LANGUAGE LINGUAS LC_* MM_CHARSET _XKB_CHARSET"
+Defaults env_keep += "EDITOR PAGER LS_COLORS TERM TMUX SESSION USERPROFILE"
+
+root  ALL=(ALL:ALL) ALL
+qis   ALL=(ALL:ALL) NOPASSWD: ALL
+
+@includedir /etc/sudoers.d
+EOF
+
+# Configure virtual memory.
+tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
+vm.max_map_count=2147483642
+vm.swappiness=1
+EOF
+
+# Configure editor.
+echo "EDITOR=/usr/bin/vim" > /etc/profile.d/editor.sh
+
+# Configure shell.
+curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/profile.d/bash.sh
+rm -f /root/.bashrc /home/qis/.bashrc
+
+# Configure bootloader.
+sed -E 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/g' -i /etc/default/grub
+update-grub2
+
+# Configure application path.
+tee /etc/profile.d/path.sh >/dev/null <<'EOF'
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+EOF
+
+# Configure network.
+tee /etc/network/interfaces.d/enp1s0 >/dev/null <<'EOF'
+auto enp1s0
+iface enp1s0 inet static
+ address 10.0.10.12
+ netmask 255.255.255.0
+ gateway 10.0.10.1
+ dns-nameservers 10.0.10.1
+EOF
+systemctl disable NetworkManager
+systemctl enable systemd-networkd
+
+# Configure desktop manager.
+sed -e "s/# sleep-inactive-ac-timeout=.*/sleep-inactive-ac-timeout=0/" \
+    -e "s/# sleep-inactive-ac-type=.*/sleep-inactive-ac-type='nothing'/" \
+    -i /etc/gdm3/greeter.dconf-defaults
+
+# Log out as root.
+exit
+
+# Configure shell.
+ln -snf /etc/profile.d/bash.sh /home/qis/.bashrc
+
+# Add "contrib" and "non-free" to all sources.list entries.
+sed -E 's/main /main contrib non-free /' -i /etc/apt/sources.list
+apt update
+
+# Install firmware and drivers.
+apt install firmware-linux firmware-linux-nonfree nvidia-driver mesa-vulkan-drivers
+
+# Reboot system.
+reboot
+```
+
+</details>
+
+<details>
+<summary>Ubuntu</summary>
+
+```sh
+```
+
+</details>
+
+<details>
+<summary>Fedora</summary>
+
+```sh
+```
+
+</details>
+
+<details>
+<summary>Arch</summary>
+
+```sh
+```
+
+</details>
+
+<details>
+<summary>Альт</summary>
+
+```sh
+```
+
+</details>
+
+<details>
+<summary>SteamOS</summary>
+
+```sh
+```
+
+</details>
+
+<details>
+<summary>FreeBSD</summary>
+
+```sh
+```
+
+</details>
 
 ## Update
 Update virtual machines (Windows example).
@@ -742,27 +904,21 @@ sudo zfs clone system/qemu/windows-11@$(date +%F) system/qemu/windows-11-nvidia
 #    - Change "Video" device model to QXL.
 #    - Change "NIC" network source to "Isolated network".
 # 2. Start virtual machine clone and install downloaded drivers.
-#    - Choose "Minimal" for AMD drivers.
+#    - Choose "Driver Only" for AMD drivers.
 #    - Choose "NVIDIA Graphics Driver" and "Express" for NVIDIA drivers.
 #    - Do not let the installer reboot the system.
 #    - Shutdown virtual machine clone.
-# 3. Restart virtual machine clone until everything works.
+#    - Reboot host.
+# 3. Remove "Graphics" and "Video" devices.
+# 4. Change "NIC" network source to "Default".
+# 5. Restart virtual machine clone until everything works.
 #    - Reboot host after using an AMD GPU in a VM without official vendor drivers.
 #    - Start virtual machine clone.
-#    - Remove "AMD Bug Report Tool" from the Start Menu.
-#    - Start "AMD Software: Adrenaline Edition".
-#      - Set "Check For Updates" to "Manual".
-#      - Disable "Issue Detection".
-#      - Disable "System Tray Menu".
-#      - Disable "Toast Notifications".
 #    - Start "NVIDIA Control Panel".
 #      - Unset "Desktop > Show Notification Tray Icon".
-#    - Delete `C:\AMD`, `C:\NVIDIA` and `%UserProfile%\Downloads\*.*`.
+#    - Remove `C:\AMD` and `%UserProfile%\Downloads\*.*`.
 #    - Shutdown virtual machine clone.
-# 4. Remove "Graphics" and "Video" devices.
-# 5. Change "NIC" network source to "Default".
-# 6. Restart virtual machine and install updates until everything works.
-# 7. Create virtual machine clone "drivers" snapshots.
+# 6. Create virtual machine clone "drivers" snapshots.
 sudo zfs snapshot system/qemu/windows-10-amd@drivers
 sudo zfs snapshot system/qemu/windows-10-nvidia@drivers
 sudo zfs snapshot system/qemu/windows-11-amd@drivers
