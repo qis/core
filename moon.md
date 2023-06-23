@@ -15,9 +15,11 @@ RAM: 32 GiB
 Virtual machines.
 
 ```
-10.0.10.10 Windows 10
-10.0.10.11 Windows 11
-10.0.10.12 Debian 12
+10.0.10.10 windows-10
+10.0.10.11 windows-11
+10.0.10.12 debian
+10.0.11.13 fedora
+10.0.11.14 alt
 ```
 
 Use "Admin CD" from <https://www.gentoo.org/downloads/> to create a memory stick.
@@ -224,9 +226,6 @@ curl -L https://raw.githubusercontent.com/qis/core/master/.moon -o /usr/src/linu
 cd /usr/src/linux
 make menuconfig
 
-# TODO: Remove this!
-# rm -rf /lib/modules/6.1.31-gentoo
-
 # Build and install kernel.
 make -j13
 make modules_prepare
@@ -300,12 +299,8 @@ jq '.modules.files += [ "nvme" ]' \
   /etc/bliss-initramfs/settings.json
 
 # Generate kernel initarmfs.
-# emerge -av @module-rebuild
 bliss-initramfs -k 6.1.31-gentoo
 mv initrd-6.1.31-gentoo /boot/
-
-# TODO: Remove this!
-rm -f /boot/*.old
 
 # Update GRUB config.
 grub-mkconfig -o /boot/grub/grub.cfg
@@ -638,8 +633,8 @@ reboot
 * Create a virtual machine.
   - RAM: 24576 MiB
   - CPU: 12
-  - HDD: 20 GiB (64 GiB for Windows 10, 128 GiB for Windows 11)
-  - Name: `${os}-${version}` (major version or no version for rolling release)
+  - HDD: (default)
+  - Name: `${name}`
   - [x] Customize configuration before install
   - Network selection: Isolated network (for Windows)
   - Enter Overview/Title.
@@ -651,7 +646,7 @@ reboot
     - Cores: 6
     - Threads: 2
   - Add `<kvm><hidden state="on"/></kvm><ioapic driver="kvm"/>` to the `<features>` section.
-  - Remove "USB Redirector" devices.
+  - Remove "Channel", "Console" and "USB Redirector" devices.
   - Apply Windows specific changes.
     - Add CDROM "Storage" device and mount `VirtIO.iso`.
     - Change "Disk 1" device type to VirtIO.
@@ -661,36 +656,37 @@ reboot
   - Use `E:\amd64\win10\vioscsi.inf` SCSI driver on Windows 10.
   - Use `E:\amd64\win11\vioscsi.inf` SCSI driver on Windows 11.
   - Make sure the system time is correct across reboots.
-    - Set `HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation\RealTimeIsUniversal`.
+    - Set `HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation\RealTimeIsUniversal` to 0.
     - Disable NTP.
+  - Enable auto login.
+    - Set `HKLM\SOFTWARE\Microsoft\WindowsNT\CurrentVersion\PasswordLess\Device\DevicePasswordLessBuildVersion` to 0.
+    - Run `netplwiz` and unset "Users must enter a user name and password to use this computer.".
+  - Disable Windows Defender.
+    - Disable "Tamper Protection" in Windows Settings.
+    - Run `gpedit.msc` and enable `Computer Configuration/Administrative Templates/Windows Components/Turn-off Microsoft Defender Antivirus`.
   - Activate Windows with WIN+R and `SLUI 4`.
   - Disable unwanted Windows Defender notifications.
+  - Configure browser and install uBlock Origin.
   - Configure static IP address.
   - Disable system sounds.
   - Disable sticky keys.
   - Shutdown system.
 
 * Configure virtual machine.
-  - Execute `zfs rename system/qemu/${os}-${version}.qcow2 system/qemu/${os}-${version}`.
-  - Change "Disk 1" XML `system/qemu/${os}-${version}.qcow2` to `system/qemu/${os}-${version}`.
-  - Change "Overview" XML `<audio id="1" type="spice"/>` to `<audio id="1" type="none"/>`.
+  - Execute `zfs rename system/qemu/${name}.qcow2 system/qemu/${name}`.
+  - Change "Disk 1" XML `system/qemu/${name}.qcow2` to `system/qemu/${name}`.
   - Add "USB Host Device" for connected keyboard and mouse.
   - Remove "Channel (spice)" device.
 
 * Create "clean" snapshot.
-  - Execute `zfs snapshot system/qemu/${os}-${version}@clean`.
+  - Execute `zfs snapshot system/qemu/${name}@clean`.
 
-* Clone virtual machine with name `${os}-${version}-${gpu}`.
+* Clone virtual machine with name `${name}-${gpu}`.
   - Do not clone any storage devices.
 
 * Synchronize virtual machine clone settings.
-  - Execute `diff <(vm dumpxml ${os}-${version}) <(vm dumpxml ${os}-${version}-${gpu})`.
+  - Execute `diff <(vm dumpxml ${name}) <(vm dumpxml ${name}-${gpu})`.
   - Everything except `<name>`, `<uuid>` and `<title>` must match.
-
-* Configure virtual machine clone.
-  - Execute `zfs snapshot system/qemu/${os}-${version}@$(date +%F)`.
-  - Execute `zfs clone system/qemu/${os}-${version}@$(date +%F) system/qemu/${os}-${version}-${gpu}`.
-  - Change "Disk 1" XML `system/qemu/${os}-${version}` to `system/qemu/${os}-${version}-${gpu}`.
   - Add "PCI Host Device" for each GPU related device.
 
 * Start virtual machine clone and install drivers.
@@ -700,19 +696,11 @@ reboot
   - Remove "Display" and "Graphics" devices.
 
 * Create "drivers" snapshot.
-  - Execute `zfs snapshot system/qemu/${os}-${version}-${gpu}@drivers`.
-
-**NOTE**: Virtual machine clones that run Linux can share the same drive.
+  - Execute `zfs snapshot system/qemu/${name}@drivers`.
 
 Configure guest system.
 
-<details>
-<summary>Debian</summary>
-
 ```sh
-# Show IP address.
-ip addr
-
 # Configure ssh.
 # scp ~/.ssh/id_rsa.pub qis@${ip}:.ssh/authorized_keys
 
@@ -721,6 +709,16 @@ ip addr
 
 # Log in as root.
 sudo su -
+```
+
+<details>
+<summary>Debian</summary>
+
+Download [amd64 "stable" release CD](https://www.debian.org/CD/http-ftp/#stable).
+
+```sh
+# Show IP address.
+ip addr
 
 # Update system.
 apt update
@@ -784,12 +782,6 @@ sed -e "s/# sleep-inactive-ac-timeout=.*/sleep-inactive-ac-timeout=0/" \
     -e "s/# sleep-inactive-ac-type=.*/sleep-inactive-ac-type='nothing'/" \
     -i /etc/gdm3/greeter.dconf-defaults
 
-# Log out as root.
-exit
-
-# Configure shell.
-ln -snf /etc/profile.d/bash.sh /home/qis/.bashrc
-
 # Add "contrib" and "non-free" to all sources.list entries.
 sed -E 's/main /main contrib non-free /' -i /etc/apt/sources.list
 apt update
@@ -797,16 +789,14 @@ apt update
 # Install firmware and drivers.
 apt install firmware-linux firmware-linux-nonfree nvidia-driver mesa-vulkan-drivers
 
+# Log out as root.
+exit
+
+# Configure shell.
+ln -snf /etc/profile.d/bash.sh ~/.bashrc
+
 # Reboot system.
-reboot
-```
-
-</details>
-
-<details>
-<summary>Ubuntu</summary>
-
-```sh
+sudo reboot
 ```
 
 </details>
@@ -814,39 +804,134 @@ reboot
 <details>
 <summary>Fedora</summary>
 
+Download [Fedora Workstation](https://fedoraproject.org/workstation/download/).
+
 ```sh
+# Show IP address.
+ip addr
+
+# Enable SSH server.
+systemctl enable sshd --now
+
+# Update system.
+dnf update -y
+
+# Install system packages.
+dnf install htop p7zip p7zip-plugins pv spice-vdagent vim
+
+# Configure sudo.
+EDITOR=tee visudo >/dev/null <<'EOF'
+Defaults env_keep += "LANG LANGUAGE LINGUAS LC_* MM_CHARSET _XKB_CHARSET"
+Defaults env_keep += "EDITOR PAGER LS_COLORS TERM TMUX SESSION USERPROFILE"
+
+root  ALL=(ALL:ALL) ALL
+qis   ALL=(ALL:ALL) NOPASSWD: ALL
+
+@includedir /etc/sudoers.d
+EOF
+
+# Configure virtual memory.
+tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
+vm.max_map_count=2147483642
+vm.swappiness=1
+EOF
+
+# Configure editor.
+echo "EDITOR=/usr/bin/vim" > /etc/profile.d/editor.sh
+
+# Configure shell.
+curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/profile.d/bash.sh
+rm -f /root/.bashrc /home/qis/.bashrc
+
+# Configure bootloader.
+sed -E 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/g' -i /etc/default/grub
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+# Configure firewall.
+sed -E 's/CleanupOnExit=.*/CleanupOnExit=no/' -i /etc/firewalld/firewalld.conf
+
+# Install firmware and drivers.
+dnf install akmod-nvidia xorg-x11-drv-nvidia-cuda
+
+# Log out as root.
+exit
+
+# Configure shell.
+ln -snf /etc/profile.d/bash.sh ~/.bashrc
+
+# Reboot system.
+sudo reboot
 ```
 
 </details>
 
 <details>
-<summary>Arch</summary>
+<summary>Alt</summary>
+
+Download [regular-kde5-latest-x86_64.iso](http://nightly.altlinux.org/sisyphus/tested/).
 
 ```sh
-```
+# Log in as root.
+su -
 
-</details>
+# Show IP address.
+ip addr
 
-<details>
-<summary>Альт</summary>
+# Enable SSH server.
+systemctl enable sshd --now
 
-```sh
-```
+# Update system.
+epm full-upgrade
 
-</details>
+# Install system packages.
+epm install git p7zip spice-vdagent symlinks tmux
 
-<details>
-<summary>SteamOS</summary>
+# Configure sudo.
+EDITOR=tee visudo >/dev/null <<'EOF'
+Defaults env_keep += "LANG LANGUAGE LINGUAS LC_* MM_CHARSET _XKB_CHARSET"
+Defaults env_keep += "EDITOR PAGER LS_COLORS TERM TMUX SESSION USERPROFILE"
 
-```sh
-```
+root  ALL=(ALL:ALL) ALL
+qis   ALL=(ALL:ALL) NOPASSWD: ALL
 
-</details>
+@includedir /etc/sudoers.d
+EOF
 
-<details>
-<summary>FreeBSD</summary>
+# Configure virtual memory.
+tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
+vm.max_map_count=2147483642
+vm.swappiness=1
+EOF
 
-```sh
+# Configure editor.
+echo "EDITOR=/usr/bin/vim" > /etc/profile.d/editor.sh
+
+# Configure shell.
+curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/profile.d/bash.sh
+sed -E 's/export LC_(.*)/#export LC_\1/' -i /etc/profile.d/bash.sh
+rm -f /root/.bashrc /home/qis/.bashrc
+ln -snf /etc/profile.d/bash.sh ~/.bashrc
+
+# Configure bootloader.
+sed -E 's/#?GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/g' -i /etc/default/grub
+update-grub
+
+# Install firmware and drivers.
+epm install update-kernel nvidia_glx_common
+update-kernel
+nvidia-install-driver
+
+# Log out as root.
+exit
+
+# Configure shell.
+ln -snf /etc/profile.d/bash.sh ~/.bashrc
+
+# Change display driver (graphical interface).
+# acc
+
+# Reboot system.
+sudo reboot
 ```
 
 </details>
@@ -864,19 +949,16 @@ vm shutdown windows-10-amd
 vm shutdown windows-10
 vm list --all
 
-# Destroy virtual machine clone snapshots.
+# List snapshots.
 zfs list -t snapshot
-sudo zfs destroy system/qemu/windows-11-nvidia@drivers
-sudo zfs destroy system/qemu/windows-11-amd@drivers
-sudo zfs destroy system/qemu/windows-10-nvidia@drivers
-sudo zfs destroy system/qemu/windows-10-amd@drivers
 
-# Destroy virtual machine clone datasets.
-zfs list
-sudo zfs destroy system/qemu/windows-11-nvidia
-sudo zfs destroy system/qemu/windows-11-amd
-sudo zfs destroy system/qemu/windows-10-nvidia
-sudo zfs destroy system/qemu/windows-10-amd
+# Destroy "drivers" virtual machine snapshots.
+sudo zfs destroy system/qemu/windows-10@drivers
+sudo zfs destroy system/qemu/windows-11@drivers
+
+# Rollback to "clean" virtual machine snapshots.
+sudo zfs rollback system/qemu/windows-10@clean
+sudo zfs rollback system/qemu/windows-11@clean
 
 # Install Windows 10 updates and download new drivers.
 vm start windows-10
@@ -887,16 +969,6 @@ vm list --all
 vm start windows-11
 vm shutdown windows-11
 vm list --all
-
-# Create virtual machine snapshots.
-sudo zfs snapshot system/qemu/windows-10@$(date +%F)
-sudo zfs snapshot system/qemu/windows-11@$(date +%F)
-
-# Create virtual machine clone datasets.
-sudo zfs clone system/qemu/windows-10@$(date +%F) system/qemu/windows-10-amd
-sudo zfs clone system/qemu/windows-10@$(date +%F) system/qemu/windows-10-nvidia
-sudo zfs clone system/qemu/windows-11@$(date +%F) system/qemu/windows-11-amd
-sudo zfs clone system/qemu/windows-11@$(date +%F) system/qemu/windows-11-nvidia
 
 # Install drivers for each virtual machine clone.
 # 1. Configure virtual machine clone.
@@ -919,10 +991,8 @@ sudo zfs clone system/qemu/windows-11@$(date +%F) system/qemu/windows-11-nvidia
 #    - Remove `C:\AMD` and `%UserProfile%\Downloads\*.*`.
 #    - Shutdown virtual machine clone.
 # 6. Create virtual machine clone "drivers" snapshots.
-sudo zfs snapshot system/qemu/windows-10-amd@drivers
-sudo zfs snapshot system/qemu/windows-10-nvidia@drivers
-sudo zfs snapshot system/qemu/windows-11-amd@drivers
-sudo zfs snapshot system/qemu/windows-11-nvidia@drivers
+sudo zfs snapshot system/qemu/windows-10@drivers
+sudo zfs snapshot system/qemu/windows-11@drivers
 ```
 
 ## Kernel

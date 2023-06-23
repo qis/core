@@ -43,6 +43,9 @@ sys-apps/moreutils
 sys-auth/polkit
 sys-auth/seatd
 
+# Multimedia
+media-sound/alsa-utils
+
 # Tools
 app-admin/ccze
 app-misc/jq
