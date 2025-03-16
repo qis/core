@@ -1202,7 +1202,9 @@ eselect kernel show
 readlink /usr/src/linux
 
 # Configure kernel (see "Kernel" section for more details).
+modprobe configs
 gzip -dc /proc/config.gz > /usr/src/linux/.config
+modprobe -r configs
 cd /usr/src/linux
 make menuconfig
 
