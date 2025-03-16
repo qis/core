@@ -4,6 +4,13 @@ Lenovo X13 Gen 3 AMD setup instructions.
 * UEFI Menu: F1
 * BOOT Menu: F12
 
+<!--
+Boot0000  calculate HD(2,GPT,35d52d20-ca5f-124b-84cf-43187cdd8d6a,0x77358000,0x6528f)/File(\EFI\calculate\grubx64.efi)
+
+efibootmgr -b 0000 -B
+efibootmgr -c -w -d /dev/nvme0n1 -p 0 -l /EFI/BOOT/BOOTX64.EFI -L "Core"
+-->
+
 ```
 CPU: AMD Ryzen 7 PRO 6850U
 VGA: 2560x1600
@@ -1369,6 +1376,64 @@ zpool export backup
 
 # Eject drive.
 eject /dev/sda
+```
+
+</details>
+
+<details>
+<summary>Remote Backup</summary>
+
+Create remote backup.
+
+```sh
+# Set snapshot name.
+snapshot=`date '+%F'`
+
+# Mount boot partition.
+sudo mount /boot
+
+# Create boot partition archive.
+sudo tar cvJf /var/boot-${snapshot}.tar.xz -C / boot
+
+# Create snapshots.
+sudo zfs snapshot -r system@${snapshot}
+
+# Send snapshots.
+sudo zfs send -Rw system@${snapshot} | ssh -o compression=no moon sudo zfs recv system/core
+
+# Destroy snapshots.
+sudo zfs destroy -r system@${snapshot}
+
+# Delete boot partition archive.
+sudo rm -f /var/boot-${snapshot}.tar.xz
+
+# Connect to backup host.
+ssh moon
+
+# Fix mount points.
+sudo zfs list -o name,mountpoint
+sudo zfs set mountpoint=/core system/core/root
+sudo zfs set mountpoint=/core/home system/core/home
+sudo zfs set mountpoint=/core/home/qis system/core/home/qis
+sudo zfs set mountpoint=/core/opt system/core/opt
+sudo zfs set mountpoint=/core/opt/data system/core/opt/data
+sudo zfs set mountpoint=/core/tmp system/core/tmp
+sudo zfs load-key -r system/core/home/qis
+sudo zfs mount system/core/home/qis
+
+# Destroy snapshots.
+sudo zfs destroy -r system/core@2023-12-12
+```
+
+</details>
+
+<details>
+<summary>Remote Restore</summary>
+
+Restore remote backup.
+
+```sh
+TODO
 ```
 
 </details>

@@ -936,6 +936,26 @@ sudo reboot
 
 </details>
 
+## Resize
+Clone virtual machine and resize drive.
+
+```sh
+# Synchronize virtual machine clone settings.
+diff <(vm dumpxml windows-11-nvidia) <(vm dumpxml windows-11-work)
+
+# Create dataset.
+sudo zfs snapshot system/qemu/windows-11@copy
+sudo zfs send system/qemu/windows-11@copy | sudo zfs recv system/qemu/windows-11-work
+sudo zfs destroy system/qemu/windows-11@copy
+sudo zfs get volsize system/qemu/windows-11-work
+sudo zfs set volsize=512G system/qemu/windows-11-work
+
+# Start virtual machine clone.
+vm start windows-11-work
+```
+
+Open "Disk Management" and mount new space as `C:\Workspace`.
+
 ## Update
 Update virtual machines (Windows example).
 

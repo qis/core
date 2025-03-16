@@ -1,0 +1,282 @@
+
+T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 4
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=01 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0002 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:34:00.3
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=01 Lev=01 Prnt=01 Port=02 Cnt=01 Dev#=  2 Spd=480  MxCh= 2
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=02 MxPS=64 #Cfgs=  1
+P:  Vendor=05e3 ProdID=0610 Rev=60.52
+S:  Product=USB2.0 Hub
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=100mA
+I:  If#= 0 Alt= 1 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=02 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=256ms
+
+T:  Bus=01 Lev=02 Prnt=02 Port=00 Cnt=01 Dev#=  3 Spd=12   MxCh= 0
+D:  Ver= 1.10 Cls=e0(wlcon) Sub=01 Prot=01 MxPS=64 #Cfgs=  1
+P:  Vendor=10ab ProdID=9309 Rev=00.01
+C:  #Ifs= 2 Cfg#= 1 Atr=e0 MxPwr=100mA
+I:  If#= 0 Alt= 0 #EPs= 3 Cls=e0(wlcon) Sub=01 Prot=01 Driver=btusb
+E:  Ad=02(O) Atr=02(Bulk) MxPS=  64 Ivl=0ms
+E:  Ad=81(I) Atr=03(Int.) MxPS=  16 Ivl=1ms
+E:  Ad=82(I) Atr=02(Bulk) MxPS=  64 Ivl=0ms
+I:  If#= 1 Alt= 0 #EPs= 2 Cls=e0(wlcon) Sub=01 Prot=01 Driver=btusb
+E:  Ad=03(O) Atr=01(Isoc) MxPS=   0 Ivl=1ms
+E:  Ad=83(I) Atr=01(Isoc) MxPS=   0 Ivl=1ms
+
+T:  Bus=01 Lev=02 Prnt=03 Port=01 Cnt=01 Dev#=  4 Spd=12   MxCh= 0
+D:  Ver= 2.01 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1
+P:  Vendor=058f ProdID=9540 Rev=01.20
+S:  Manufacturer=Generic
+S:  Product=EMV Smartcard Reader
+C:  #Ifs= 1 Cfg#= 1 Atr=a0 MxPwr=50mA
+I:  If#= 0 Alt= 0 #EPs= 3 Cls=0b(scard) Sub=00 Prot=00 Driver=usbfs
+E:  Ad=02(O) Atr=02(Bulk) MxPS=  16 Ivl=0ms
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=1ms
+E:  Ad=83(I) Atr=02(Bulk) MxPS=  16 Ivl=0ms
+
+T:  Bus=02 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=10000 MxCh= 2
+D:  Ver= 3.10 Cls=09(hub  ) Sub=00 Prot=03 MxPS= 9 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0003 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:34:00.3
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=03 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 3
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=01 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0002 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:34:00.4
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=03 Lev=01 Prnt=01 Port=02 Cnt=01 Dev#=  2 Spd=12   MxCh= 0
+D:  Ver= 2.00 Cls=ff(vend.) Sub=10 Prot=ff MxPS= 8 #Cfgs=  1
+P:  Vendor=06cb ProdID=00f9 Rev=00.00
+S:  SerialNumber=14c55b545700
+C:  #Ifs= 1 Cfg#= 1 Atr=a0 MxPwr=100mA
+I:  If#= 0 Alt= 0 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=00 Driver=(none)
+E:  Ad=01(O) Atr=02(Bulk) MxPS=  64 Ivl=0ms
+E:  Ad=81(I) Atr=02(Bulk) MxPS=  64 Ivl=0ms
+E:  Ad=83(I) Atr=03(Int.) MxPS=   8 Ivl=4ms
+
+T:  Bus=04 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=10000 MxCh= 2
+D:  Ver= 3.10 Cls=09(hub  ) Sub=00 Prot=03 MxPS= 9 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0003 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:34:00.4
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=04 Lev=01 Prnt=01 Port=01 Cnt=01 Dev#=  2 Spd=5000 MxCh= 0
+D:  Ver= 3.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 9 #Cfgs=  1
+P:  Vendor=0781 ProdID=5591 Rev=01.00
+S:  Manufacturer= USB
+S:  Product= SanDisk 3.2Gen1
+S:  SerialNumber=00001106020821055305
+C:  #Ifs= 1 Cfg#= 1 Atr=80 MxPwr=896mA
+I:  If#= 0 Alt= 0 #EPs= 2 Cls=08(stor.) Sub=06 Prot=50 Driver=usb-storage
+E:  Ad=02(O) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+E:  Ad=81(I) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+
+T:  Bus=05 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 1
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=01 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0002 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:35:00.0
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=05 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
+D:  Ver= 2.01 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
+P:  Vendor=30c9 ProdID=0050 Rev=10.24
+S:  Manufacturer=8SSC21D67422V1SR28P239F
+S:  Product=Integrated RGB Camera
+S:  SerialNumber=01.00.00
+C:  #Ifs= 5 Cfg#= 1 Atr=80 MxPwr=500mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=01 Driver=uvcvideo
+E:  Ad=87(I) Atr=03(Int.) MxPS=  16 Ivl=16ms
+I:  If#= 1 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=01 Driver=uvcvideo
+I:  If#= 2 Alt= 0 #EPs= 1 Cls=0e(video) Sub=01 Prot=01 Driver=uvcvideo
+E:  Ad=84(I) Atr=03(Int.) MxPS=  16 Ivl=16ms
+I:  If#= 3 Alt= 0 #EPs= 0 Cls=0e(video) Sub=02 Prot=01 Driver=uvcvideo
+I:  If#= 4 Alt= 0 #EPs= 0 Cls=fe(app. ) Sub=01 Prot=01 Driver=(none)
+
+T:  Bus=06 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=5000 MxCh= 0
+D:  Ver= 3.00 Cls=09(hub  ) Sub=00 Prot=03 MxPS= 9 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0003 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:35:00.0
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=(none)
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=07 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 1
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=01 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0002 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:35:00.3
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=08 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=10000 MxCh= 1
+D:  Ver= 3.10 Cls=09(hub  ) Sub=00 Prot=03 MxPS= 9 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0003 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:35:00.3
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=09 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 1
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=01 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0002 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:35:00.4
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=09 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  9 Spd=480  MxCh= 4
+D:  Ver= 2.10 Cls=09(hub  ) Sub=00 Prot=02 MxPS=64 #Cfgs=  1
+P:  Vendor=17ef ProdID=30d3 Rev=55.53
+S:  Manufacturer=VIA Labs, Inc.         
+S:  Product=USB2.0 Hub             
+S:  SerialNumber=000000001
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 1 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=02 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=256ms
+
+T:  Bus=09 Lev=02 Prnt=09 Port=03 Cnt=01 Dev#= 10 Spd=480  MxCh= 4
+D:  Ver= 2.10 Cls=09(hub  ) Sub=00 Prot=02 MxPS=64 #Cfgs=  1
+P:  Vendor=17ef ProdID=30d5 Rev=55.54
+S:  Manufacturer=VIA Labs, Inc.         
+S:  Product=USB2.0 Hub             
+S:  SerialNumber=000000001
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 1 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=02 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=256ms
+
+T:  Bus=09 Lev=03 Prnt=10 Port=00 Cnt=01 Dev#= 11 Spd=1.5  MxCh= 0
+D:  Ver= 1.10 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1
+P:  Vendor=04d9 ProdID=a0b9 Rev=04.06
+S:  Manufacturer=Keyed Up Labs
+S:  Product=ES-87
+C:  #Ifs= 2 Cfg#= 1 Atr=a0 MxPwr=100mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=01 Driver=usbhid
+E:  Ad=81(I) Atr=03(Int.) MxPS=   8 Ivl=8ms
+I:  If#= 1 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=00 Prot=00 Driver=usbhid
+E:  Ad=82(I) Atr=03(Int.) MxPS=   8 Ivl=8ms
+
+T:  Bus=09 Lev=03 Prnt=11 Port=01 Cnt=01 Dev#= 12 Spd=480  MxCh= 4
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=02 MxPS=64 #Cfgs=  1
+P:  Vendor=1a40 ProdID=0101 Rev=01.00
+S:  Product=USB 2.0 Hub [MTT]
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=100mA
+I:  If#= 0 Alt= 1 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=02 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=256ms
+
+T:  Bus=09 Lev=04 Prnt=12 Port=00 Cnt=01 Dev#= 14 Spd=12   MxCh= 0
+D:  Ver= 2.01 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1
+P:  Vendor=17ef ProdID=a354 Rev=00.00
+S:  Manufacturer=Cypress Semiconductor
+S:  Product=Billboard Device
+S:  SerialNumber=1S40AFZHKL5D9W
+C:  #Ifs= 2 Cfg#= 1 Atr=80 MxPwr=100mA
+I:  If#= 0 Alt= 0 #EPs= 0 Cls=11(blbrd) Sub=00 Prot=00 Driver=(none)
+I:  If#= 1 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=00 Prot=00 Driver=usbhid
+E:  Ad=81(I) Atr=03(Int.) MxPS=  64 Ivl=255ms
+
+T:  Bus=09 Lev=03 Prnt=14 Port=02 Cnt=01 Dev#= 13 Spd=12   MxCh= 0
+D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=046d ProdID=c08b Rev=27.03
+S:  Manufacturer=Logitech
+S:  Product=G502 HERO Gaming Mouse
+S:  SerialNumber=177C31593432
+C:  #Ifs= 2 Cfg#= 1 Atr=a0 MxPwr=300mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=02 Driver=usbhid
+E:  Ad=81(I) Atr=03(Int.) MxPS=   8 Ivl=1ms
+I:  If#= 1 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=00 Prot=00 Driver=usbhid
+E:  Ad=82(I) Atr=03(Int.) MxPS=  20 Ivl=1ms
+
+T:  Bus=10 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=10000 MxCh= 1
+D:  Ver= 3.10 Cls=09(hub  ) Sub=00 Prot=03 MxPS= 9 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0003 Rev=06.02
+S:  Manufacturer=Linux 6.2.9-300.fc38.x86_64 xhci-hcd
+S:  Product=xHCI Host Controller
+S:  SerialNumber=0000:35:00.4
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=10 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  7 Spd=10000 MxCh= 4
+D:  Ver= 3.20 Cls=09(hub  ) Sub=00 Prot=03 MxPS= 9 #Cfgs=  1
+P:  Vendor=17ef ProdID=30d2 Rev=55.53
+S:  Manufacturer=VIA Labs, Inc.         
+S:  Product=USB3.1 Hub             
+S:  SerialNumber=000000001
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=13(Int.) MxPS=   2 Ivl=16ms
+
+T:  Bus=10 Lev=02 Prnt=07 Port=01 Cnt=01 Dev#=  8 Spd=5000 MxCh= 0
+D:  Ver= 3.20 Cls=ef(misc ) Sub=02 Prot=01 MxPS= 9 #Cfgs=  1
+P:  Vendor=17e9 ProdID=6015 Rev=31.04
+S:  Manufacturer=DisplayLink
+S:  Product=ThinkPad Hybrid USB-C with USB-A Dock
+S:  SerialNumber=13006137
+C:  #Ifs= 5 Cfg#= 1 Atr=c0 MxPwr=8mA
+I:  If#= 0 Alt= 0 #EPs= 6 Cls=ff(vend.) Sub=00 Prot=03 Driver=(none)
+E:  Ad=02(O) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+E:  Ad=08(O) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+E:  Ad=0a(O) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+E:  Ad=0b(O) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+E:  Ad=0c(O) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+E:  Ad=84(I) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+I:  If#= 1 Alt= 0 #EPs= 0 Cls=fe(app. ) Sub=01 Prot=01 Driver=(none)
+I:  If#= 2 Alt= 0 #EPs= 1 Cls=01(audio) Sub=01 Prot=20 Driver=snd-usb-audio
+E:  Ad=83(I) Atr=03(Int.) MxPS=   7 Ivl=16ms
+I:  If#= 3 Alt= 0 #EPs= 0 Cls=01(audio) Sub=02 Prot=20 Driver=snd-usb-audio
+I:  If#= 4 Alt= 0 #EPs= 0 Cls=01(audio) Sub=02 Prot=20 Driver=snd-usb-audio
+
+T:  Bus=10 Lev=02 Prnt=08 Port=02 Cnt=01 Dev#=  9 Spd=5000 MxCh= 0
+D:  Ver= 3.20 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 9 #Cfgs=  2
+P:  Vendor=17ef ProdID=a359 Rev=31.03
+S:  Manufacturer=Lenovo
+S:  Product=ThinkPad Lan
+S:  SerialNumber=301343E36C
+C:  #Ifs= 2 Cfg#= 2 Atr=a0 MxPwr=112mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=02(commc) Sub=06 Prot=00 Driver=cdc_ether
+E:  Ad=83(I) Atr=03(Int.) MxPS=  16 Ivl=128ms
+I:  If#= 1 Alt= 1 #EPs= 2 Cls=0a(data ) Sub=00 Prot=00 Driver=cdc_ether
+E:  Ad=02(O) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+E:  Ad=81(I) Atr=02(Bulk) MxPS=1024 Ivl=0ms
+
+T:  Bus=10 Lev=02 Prnt=09 Port=03 Cnt=01 Dev#= 10 Spd=10000 MxCh= 4
+D:  Ver= 3.20 Cls=09(hub  ) Sub=00 Prot=03 MxPS= 9 #Cfgs=  1
+P:  Vendor=17ef ProdID=30d4 Rev=55.54
+S:  Manufacturer=VIA Labs, Inc.         
+S:  Product=USB3.1 Hub             
+S:  SerialNumber=000000001
+C:  #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=0mA
+I:  If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=13(Int.) MxPS=   2 Ivl=16ms
