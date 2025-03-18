@@ -33,6 +33,7 @@ media-sound/sox amr ao ladspa mad magic oss png sndfile sndio twolame wavpack
 dev-libs/glib mime
 sys-apps/moreutils -perl
 sys-auth/seatd builtin server
+sys-kernel/linux-firmware initramfs redistributable compress-lzo
 
 # Wireless
 net-wireless/wpa_supplicant ap fasteap tkip wep wps

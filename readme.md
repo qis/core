@@ -88,13 +88,39 @@ chmod 1777 /mnt/gentoo/tmp
 mkdir /mnt/gentoo/boot
 mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
 
+# Import "Gentoo Linux Release Engineering (Automated Weekly Release Key) <releng@gentoo.org>" key.
+wget -O - https://qa-reports.gentoo.org/output/service-keys.gpg | gpg --import
+
 # Download and extract stage 3 tarball using a mirror from https://www.gentoo.org/downloads/mirrors/.
-export stage3=20230611T170207Z
-export remote=releases/amd64/autobuilds/current-admincd-amd64
+export stage3=20250309T170330Z
+export remote=releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd
 export mirror=https://mirror.yandex.ru/gentoo-distfiles
-curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz -o /mnt/gentoo/stage.tar.xz
-tar xpf /mnt/gentoo/stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
-rm -f /mnt/gentoo/stage.tar.xz
+
+curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
+     -o /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz
+
+curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc \
+     -o /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc
+
+curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS \
+     -o /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS
+
+curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz \
+     -o /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz
+
+env --chdir /mnt/gentoo sha512sum --check stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS
+env --chdir /mnt/gentoo gpg --verify stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc
+
+echo tar xpf /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
+  --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo > /tmp/extract.sh
+
+sh /tmp/extract.sh
+
+rm -f /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
+      /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc \
+      /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS \
+      /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz \
+      /tmp/extract.sh
 
 # Redirect /var/tmp.
 rmdir /mnt/gentoo/var/tmp
@@ -160,7 +186,7 @@ GRUB_PLATFORMS="efi-64"
 ACCEPT_LICENSE="* -@EULA"
 CONFIG_PROTECT="/var/bind"
 EMERGE_DEFAULT_OPTS="--with-bdeps=y --keep-going=y --quiet-build=y"
-GENTOO_MIRRORS="https://mirror.eu.oneandone.net/linux/distributions/gentoo/gentoo/"
+GENTOO_MIRRORS="https://mirror.yandex.ru/gentoo-distfiles/"
 VIDEO_CARDS="fbdev amdgpu radeon radeonsi r600"
 INPUT_DEVICES="libinput synaptics wacom"
 LUA_SINGLE_TARGET="luajit"
@@ -184,17 +210,25 @@ eselect news read
 mkdir /etc/portage/sets
 
 # Create @core set.
-curl -L https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/core \
-     -o /etc/portage/package.accept_keywords/core
-curl -L https://raw.githubusercontent.com/qis/core/master/package.mask/core \
-     -o /etc/portage/package.mask/core
-curl -L https://raw.githubusercontent.com/qis/core/master/package.use/core \
-     -o /etc/portage/package.use/core
-curl -L https://raw.githubusercontent.com/qis/core/master/sets/core \
-     -o /etc/portage/sets/core
+wget https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/core \
+  -O /etc/portage/package.accept_keywords/core
+wget https://raw.githubusercontent.com/qis/core/master/package.mask/core \
+  -O /etc/portage/package.mask/core
+wget https://raw.githubusercontent.com/qis/core/master/package.use/core \
+  -O /etc/portage/package.use/core
+wget https://raw.githubusercontent.com/qis/core/master/sets/core \
+  -O /etc/portage/sets/core
+
+# Install freetype without circular dependencies.
+USE="-harfbuzz" emerge -1 media-libs/freetype
+
+# Install curl without circular dependencies.
+USE="-http2 -http3 -pop3 -smtp -quic -curl_quic_openssl" emerge -1 net-misc/curl
+
+# Install curl.
+emerge net-misc/curl
 
 # Install freetype and hafbuzz.
-USE="-harfbuzz" emerge -1 media-libs/freetype
 emerge media-libs/harfbuzz && emerge media-libs/freetype
 
 # Verify that the @world set has no conflicts.
@@ -202,13 +236,14 @@ emerge -pve @world
 
 # Install kernel sources.
 emerge -s '^sys-kernel/gentoo-sources$'
-echo "=sys-kernel/gentoo-sources-6.1.31 ~amd64" > /etc/portage/package.accept_keywords/kernel
-echo "=sys-kernel/gentoo-sources-6.1.31 symlink" > /etc/portage/package.use/kernel
-emerge -avnuU =sys-kernel/gentoo-sources-6.1.31 sys-kernel/linux-firmware
+echo "=sys-kernel/gentoo-sources-6.12.16 ~amd64" > /etc/portage/package.accept_keywords/kernel
+echo "=sys-kernel/gentoo-sources-6.12.16 symlink" > /etc/portage/package.use/kernel
+emerge -avnuU =sys-kernel/gentoo-sources-6.12.16 sys-kernel/linux-firmware
 
 # Configure kernel (see "Kernel" section for more details).
-curl -L https://raw.githubusercontent.com/qis/core/master/.core -o /usr/src/linux/.config
+curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
 cd /usr/src/linux
+make distclean
 make menuconfig
 
 # Build and install kernel.
