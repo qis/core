@@ -1600,6 +1600,12 @@ Symbol: CRYPTO
         Symbol: CRYPTO_DEV_CCP_DD
 ```
 
+<!--
+CONFIG_CPU_MITIGATIONS
+Linux Kernel Configuration
+└─>Mitigations for CPU vulnerabilities
+-->
+
 ```sh
 time make -j17
 ```
