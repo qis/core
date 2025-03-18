@@ -1598,13 +1598,12 @@ Symbol: CRYPTO
 
         <*>     Secure Processor device driver
         Symbol: CRYPTO_DEV_CCP_DD
-```
 
-<!--
-CONFIG_CPU_MITIGATIONS
-Linux Kernel Configuration
-└─>Mitigations for CPU vulnerabilities
--->
+[*] Mitigations for CPU vulnerabilities  --->
+Symbol: CPU_MITIGATIONS
+
+    Decide on options based on internet connectivity requirements.
+```
 
 ```sh
 time make -j17
