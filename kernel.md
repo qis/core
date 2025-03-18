@@ -1602,7 +1602,12 @@ Symbol: CRYPTO
 [*] Mitigations for CPU vulnerabilities  --->
 Symbol: CPU_MITIGATIONS
 
-    Decide on options based on internet connectivity requirements.
+    Enable SpectreV1 mitigations.
+    Evaluate:
+    - Use cases and performance requirements
+    - How trusted local and sandboxed applications are
+    - How sensitive the userspace data is
+    - CPU and available microcode fixes
 ```
 
 ```sh
