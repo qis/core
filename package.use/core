@@ -7,9 +7,11 @@ app-arch/p7zip rar
 dev-libs/libzip lzma zstd tools
 sys-libs/zlib minizip
 
-# Development
-dev-db/sqlite readline secure-delete tools
+# Scripting
 dev-lang/perl ithreads
+
+# Libraries
+dev-db/sqlite readline secure-delete tools
 dev-libs/boost context lzma nls python tools zstd
 dev-libs/botan boost lzma sqlite tools
 

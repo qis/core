@@ -10,19 +10,23 @@ app-arch/xz-utils
 app-arch/zip
 dev-libs/libzip
 
+# Scripting
+dev-lang/perl
+dev-lang/python
+dev-python/pip
+
 # Development
 dev-build/cmake
 dev-build/ninja
-dev-db/sqlite
 dev-lang/nasm
-dev-lang/perl
-dev-lang/python
 dev-lang/yasm
-dev-libs/boost
-dev-libs/botan
-dev-python/pip
 dev-util/patchelf
 dev-vcs/git
+
+# Libraries
+dev-db/sqlite
+dev-libs/boost
+dev-libs/botan
 
 # Editor
 app-editors/neovim
@@ -34,7 +38,6 @@ sys-apps/ripgrep
 # Filesystem
 sys-block/parted
 sys-fs/dosfstools
-sys-fs/e2fsprogs
 sys-fs/zfs
 
 # Fonts
@@ -63,7 +66,6 @@ sys-auth/polkit
 sys-auth/seatd
 
 # Tools
-app-admin/ccze
 app-misc/jq
 app-misc/symlinks
 app-misc/tmux
@@ -72,6 +74,6 @@ app-portage/gentoolkit
 app-portage/pfl
 app-text/tree
 sys-apps/pv
+sys-process/btop
 sys-process/htop
 sys-process/time
-virtual/w3m

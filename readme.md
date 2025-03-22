@@ -54,8 +54,6 @@ print
 quit
 ```
 
-Install system.
-
 ```sh
 # Create boot filesystem.
 mkfs.fat -F32 /dev/nvme0n1p1
@@ -66,9 +64,6 @@ swapon /dev/nvme0n1p2
 
 # Load ZFS kernel module.
 modprobe zfs
-
-# Optional: Destroy existing dataset and all data.
-# zpool destroy system
 
 # Create root filesystem.
 zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
@@ -90,6 +85,7 @@ mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
 wget -O - https://qa-reports.gentoo.org/output/service-keys.gpg | gpg --import
 
 # Download and verify stage 3 tarball.
+# https://mirror.yandex.ru/gentoo-distfiles/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd
 export stage3=20250315T023326Z
 export remote=releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd
 export mirror=https://mirror.yandex.ru/gentoo-distfiles
@@ -116,14 +112,13 @@ tar xpf /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
 rm -f /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
       /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc \
       /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS \
-      /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz \
-      /tmp/extract.sh
+      /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz
 
 # Redirect /var/tmp.
 rmdir /mnt/gentoo/var/tmp
 ln -s ../tmp /mnt/gentoo/var/tmp
 
-# Create opt symlink.
+# Redirect /usr/opt.
 ln -s ../opt /mnt/gentoo/usr/opt
 
 # Copy zpool cache.
@@ -145,13 +140,8 @@ cp -L /etc/resolv.conf /mnt/gentoo/etc/
 # Configure CPU flags.
 echo "*/* `cpuid2cpuflags`" > /mnt/gentoo/etc/portage/package.use/flags
 
-# Make sure /proc/config.gz is available.
-modprobe configs
-
 # Chroot into system.
 chroot /mnt/gentoo /bin/bash
-source /etc/profile
-export PS1="(chroot) ${PS1}"
 
 # Generate locale.
 tee /etc/locale.gen >/dev/null <<'EOF'
@@ -160,6 +150,8 @@ ru_RU.UTF-8 UTF-8
 EOF
 
 locale-gen
+
+# Load profile.
 source /etc/profile
 export PS1="(chroot) ${PS1}"
 
@@ -205,8 +197,8 @@ EOF
 cp /usr/share/portage/config/repos.conf /etc/portage/repos.conf
 emerge --sync
 
-# Read portage news.
-eselect news read | less
+# Mark portage news as read.
+eselect news read
 
 # Create sets directory.
 mkdir /etc/portage/sets
@@ -221,8 +213,7 @@ wget https://raw.githubusercontent.com/qis/core/master/package.use/core \
 wget https://raw.githubusercontent.com/qis/core/master/sets/core \
   -O /etc/portage/sets/core
 
-# Install curl without circular dependencies.
-USE="-http2 -http3 -pop3 -smtp -quic -curl_quic_openssl" emerge -1 net-misc/curl
+# Install curl.
 emerge net-misc/curl
 
 # Install freetype and hafbuzz without circular dependencies.
@@ -238,22 +229,138 @@ echo "=sys-kernel/gentoo-sources-6.12.16 ~amd64" > /etc/portage/package.accept_k
 echo "=sys-kernel/gentoo-sources-6.12.16 symlink" > /etc/portage/package.use/kernel
 emerge -avnuU =sys-kernel/gentoo-sources-6.12.16 sys-kernel/linux-firmware
 
+# Verify kernel sources symlink.
+ls -lh /usr/src/linux
+
 # Verify AMD microcode image.
 ls -lh /boot/amd-uc.img
-
-# Clean kernel.
-cd /usr/src/linux
-make clean mrproper distclean
 
 # Option 1: Use genkernel(8) to configure and build the kernel.
 # emerge -avn sys-kernel/genkernel
 # cp /etc/genkernel.conf /etc/genkernel.conf.orig
 # curl -L https://raw.githubusercontent.com/qis/core/master/genkernel.conf -o /etc/genkernel.conf
 # genkernel kernel
+```
 
+```
+Gentoo Linux  --->
+
+    Support for init systems, system and service managers  --->
+
+        [ ] OpenRC, runit and other script based systems and managers
+        Symbol: GENTOO_LINUX_INIT_SCRIPT
+
+        [*] systemd
+        Symbol: GENTOO_LINUX_INIT_SYSTEMD
+
+Kernel hacking  --->
+
+    Kernel Testing and Coverage  --->
+
+        [ ] Runtime Testing  ----
+        Symbol: RUNTIME_TESTING_MENU
+
+        [ ] Memtest
+        Symbol: MEMTEST
+
+File systems  --->
+
+    DOS/FAT/EXFAT/NT Filesystems  --->
+
+        <*> MSDOS fs support
+        Symbol: MSDOS_FS
+
+        <*> VFAT (Windows-95) fs support
+        Symbol: VFAT_FS
+
+        <*> exFAT filesystem support
+        Symbol: EXFAT_FS
+
+        < > NTFS file system support
+        Symbol: NTFS_FS
+
+        < > NTFS Read-Write file system support
+        Symbol: NTFS3_FS
+
+    -*- Native language support  --->
+
+        (utf8) Default NLS Option
+        Symbol: NLS_DEFAULT
+
+        <*>   Codepage 437 (United States, Canada)
+        Symbol: NLS_CODEPAGE_437
+
+        <*>   ASCII (United States)
+        Symbol: NLS_ASCII
+
+        <*>   NLS UTF-8
+        Symbol: NLS_UTF8
+
+General setup  --->
+
+    (/lib/systemd/systemd) Default init path
+    Symbol: DEFAULT_INIT
+
+    (core) Default hostname
+    Symbol: DEFAULT_HOSTNAME
+
+    Preemption Model (Preemptible Kernel (Low-Latency Desktop))  --->
+    Symbol: PREEMPT
+
+    [*] Configure standard kernel features (expert users)  --->
+    Symbol: EXPERT
+
+        [ ]   Enable PC-Speaker support
+        Symbol: PCSPKR_PLATFORM
+
+Processor type and features  --->
+
+    [ ] Support for extended (non-PC) x86 platforms
+    Symbol: X86_EXTENDED_PLATFORM
+
+    [*] Supported processor vendors  --->
+    Symbol: PROCESSOR_SELECT
+
+        [*]   Support AMD processors
+        Symbol: CPU_SUP_AMD
+
+        Disable everything else.
+
+    [ ] Enable Maximum number of SMP Processors and NUMA Nodes
+    Symbol: MAXSMP
+
+    (16) Maximum number of CPUs
+    Symbol: NR_CPUS
+
+    [ ] Enable 5-level page tables support
+    Symbol: X86_5LEVEL
+
+    Timer frequency (1000 HZ)  --->
+    Symbol: HZ_1000
+
+Power management and ACPI options  --->
+
+    (/dev/nvme0n1p2) Default resume partition
+    Symbol: PM_STD_PARTITION
+
+[*] Mitigations for CPU vulnerabilities  --->
+Symbol: CPU_MITIGATIONS
+
+    [*]   Remove the kernel mapping in user mode
+    Symbol: MITIGATION_PAGE_TABLE_ISOLATION
+
+    [*]   Mitigate SPECTRE V1 hardware bug
+    Symbol: MITIGATION_SPECTRE_V1
+
+    Disable unwanted mitigations.
+```
+
+```sh
 # Option 2: Manually configure and build the kernel.
 # curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
 # gzip -dc /proc/config.gz > /usr/src/linux/.config
+# cd /usr/src/linux
+# make clean mrproper distclean
 # make oldconfig
 # make menuconfig
 # make -j17
@@ -299,7 +406,7 @@ EOF
 tee /boot/loader/entries/linux.conf >/dev/null <<'EOF'
 title Linux
 linux /vmlinuz-6.12.16-gentoo
-initrd /initrd-6.12.16-gentoo
+initrd /amd-uc.img /initrd-6.12.16-gentoo
 options root=system/root ro acpi_enforce_resources=lax quiet
 EOF
 
