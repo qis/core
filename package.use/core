@@ -1,5 +1,6 @@
 # Bootloader
-sys-boot/grub libzfs -sdl truetype
+sys-apps/busybox pam systemd
+sys-apps/systemd boot pam
 
 # Compression
 app-arch/p7zip rar
@@ -9,10 +10,8 @@ sys-libs/zlib minizip
 # Development
 dev-db/sqlite readline secure-delete tools
 dev-lang/perl ithreads
-dev-lang/rust system-llvm
 dev-libs/boost context lzma nls python tools zstd
 dev-libs/botan boost lzma sqlite tools
-sys-devel/llvm binutils-plugin libffi ncurses libedit z3 zstd
 
 # Filesystem
 sys-fs/zfs pam rootfs
@@ -33,7 +32,8 @@ media-sound/sox amr ao ladspa mad magic oss png sndfile sndio twolame wavpack
 dev-libs/glib mime
 sys-apps/moreutils -perl
 sys-auth/seatd builtin server
-sys-kernel/linux-firmware initramfs redistributable compress-lzo
+sys-kernel/genkernel firmware systemd
+sys-kernel/linux-firmware initramfs redistributable
 
 # Wireless
 net-wireless/wpa_supplicant ap fasteap tkip wep wps

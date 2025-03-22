@@ -771,13 +771,30 @@ Module: zram
 Configure kernel.
 
 ```sh
+# Clean kernel.
+cd /usr/src/linux
 make clean mrproper distclean
+
+# Restore kernel config.
+modprobe configs
+gzip -dc /proc/config.gz > /usr/src/linux/.config
+
+# Clean up kernel config.
+sed -i '/CONFIG_NR_CPUS.*/d' .config
+
+# Update kernel config.
+make oldconfig
+
+# Enable all modules.
+# make allmodconfig
+
+# Configure kernel.
 make menuconfig
 ```
 
 **NOTE**: Press `z` to show hidden options.
 
-### Gentoo
+### Init System
 
 ```
 Gentoo Linux  --->
@@ -791,66 +808,63 @@ Gentoo Linux  --->
         Symbol: GENTOO_LINUX_INIT_SYSTEMD
 ```
 
+### Debugging
+
+```
+Kernel hacking  --->
+
+    Kernel Testing and Coverage  --->
+
+        [ ] Runtime Testing  ----
+        Symbol: RUNTIME_TESTING_MENU
+
+        [ ] Memtest
+        Symbol: MEMTEST
+```
+
 ### Filesystem
 
 ```
 File systems  --->
 
-    < > The Extended 4 (ext4) filesystem
-    Symbol: EXT4_FS
+    Disable all "... filesystem support" entries.
 
     [ ] Quota support
     Symbol: QUOTA
 
-    <M> FUSE (Filesystem in Userspace) support
-    Symbol: FUSE_FS
-
-    <M>   Character device in Userspace support
-    Symbol: CUSE
-
-    CD-ROM/DVD Filesystems  --->
-
-        <M> ISO 9660 CDROM file system support
-        Symbol: ISO9660_FS
-
-        <M> UDF file system support
-        Symbol: UDF_FS
-
     DOS/FAT/EXFAT/NT Filesystems  --->
+
+        <*> MSDOS fs support
+        Symbol: MSDOS_FS
+
+        <*> VFAT (Windows-95) fs support
+        Symbol: VFAT_FS
 
         <*> exFAT filesystem support
         Symbol: EXFAT_FS
 
-    -*- Native language support  --->
+        < > NTFS file system support
+        Symbol: NTFS_FS
 
-        (utf8) Default NLS Option
-        Symbol: NLS_DEFAULT [=utf8]
-
-        <*> NLS UTF-8
-        Symbol: NLS_UTF8
-
-    Pseudo filesystems  --->
-
-        [ ] HugeTLB file system support
-        Symbol: HUGETLBFS
-
-    [*] Miscellaneous filesystems  --->
-    Symbol: MISC_FILESYSTEMS
-
-        <*>   SquashFS 4.0 - Squashed file system support
-        Symbol: SQUASHFS
-
-        [*]     Include support for ZLIB compressed file systems
-        Symbol: SQUASHFS_ZLIB
-
-        [*]     Include support for LZO compressed file systems
-        Symbol: SQUASHFS_LZO
-
-        [*]     Include support for XZ compressed file systems
-        Symbol: SQUASHFS_XZ
+        < > NTFS Read-Write file system support
+        Symbol: NTFS3_FS
 
     [ ] Network File Systems
     Symbol: NETWORK_FILESYSTEMS
+
+    -*- Native language support  --->
+
+        (utf8) Default NLS Option
+        Symbol: NLS_DEFAULT
+
+        <*>   Codepage 437 (United States, Canada)
+        Symbol: NLS_CODEPAGE_437
+
+        <*>   ASCII (United States)
+        Symbol: NLS_ASCII
+
+        <*>   NLS UTF-8
+        Symbol: NLS_UTF8
 ```
 
 ### System
@@ -858,28 +872,11 @@ File systems  --->
 ```
 General setup  --->
 
-    () Local version - append to kernel release
-    Symbol: LOCALVERSION [=]
-
-    [ ] Automatically append version information to the version string
-    Symbol: LOCALVERSION_AUTO
-
-    Kernel compression mode (XZ)  --->
-    Symbol: KERNEL_XZ
-
     (/lib/systemd/systemd) Default init path
-    Symbol: DEFAULT_INIT [=/lib/systemd/systemd]
+    Symbol: DEFAULT_INIT
 
     (core) Default hostname
-    Symbol: DEFAULT_HOSTNAME [=core]
-
-    BPF subsystem  --->
-
-        [*] Enable BPF Just In Time compiler
-        Symbol: BPF_JIT
-
-        [*]   Permanently enable BPF JIT and remove BPF interpreter
-        Symbol: BPF_JIT_ALWAYS_ON
+    Symbol: DEFAULT_HOSTNAME
 
     Preemption Model (Preemptible Kernel (Low-Latency Desktop))  --->
     Symbol: PREEMPT
@@ -890,36 +887,6 @@ General setup  --->
     [*]   Enable access to .config through /proc/config.gz
     Symbol: IKCONFIG_PROC
 
-    -*- Control Group support  --->
-    Symbol: CGROUPS
-
-        [ ]   Debug controller
-        Symbol: CGROUP_DEBUG
-
-    [*] Initial RAM filesystem and RAM disk (initramfs/initrd) support
-    Symbol: BLK_DEV_INITRD
-
-    [*]   Support initial ramdisk/ramfs compressed using gzip
-    Symbol: RD_GZIP
-
-    [ ]   Support initial ramdisk/ramfs compressed using bzip2
-    Symbol: RD_BZIP2
-
-    [ ]   Support initial ramdisk/ramfs compressed using LZMA
-    Symbol: RD_LZMA
-
-    [*]   Support initial ramdisk/ramfs compressed using XZ
-    Symbol: RD_XZ
-
-    [*]   Support initial ramdisk/ramfs compressed using LZO
-    Symbol: RD_LZO
-
-    [ ]   Support initial ramdisk/ramfs compressed using LZ4
-    Symbol: RD_LZ4
-
-    [ ]   Support initial ramdisk/ramfs compressed using ZSTD
-    Symbol: RD_ZSTD
-
     [*] Configure standard kernel features (expert users)  --->
     Symbol: EXPERT
 
@@ -928,58 +895,34 @@ General setup  --->
 
 Processor type and features  --->
 
+    [ ] Support for extended (non-PC) x86 platforms
+    Symbol: X86_EXTENDED_PLATFORM
+
     [*] Supported processor vendors  --->
     Symbol: PROCESSOR_SELECT
-
-        Disable everything.
 
         [*]   Support AMD processors
         Symbol: CPU_SUP_AMD
 
+        Disable everything else.
+
+    [ ] Enable Maximum number of SMP Processors and NUMA Nodes
+    Symbol: MAXSMP
+
     (16) Maximum number of CPUs
-    Symbol: NR_CPUS [=16]
-
-    [*] Machine Check / overheating reporting
-    Symbol: X86_MCE
-
-        [ ]   Intel MCE features
-        Symbol: X86_MCE_INTEL
-
-        [*]   AMD MCE features
-        Symbol: X86_MCE_AMD
-
-    Performance monitoring  --->
-
-        <*> AMD Processor Power Reporting Mechanism
-        Symbol: PERF_EVENTS_AMD_POWER
-
-        [*] AMD Zen3 Branch Sampling support
-        Symbol: PERF_EVENTS_AMD_BRS
+    Symbol: NR_CPUS
 
     [ ] Enable 5-level page tables support
     Symbol: X86_5LEVEL
 
-    [*] AMD Secure Memory Encryption (SME) support
-    Symbol: AMD_MEM_ENCRYPT
-
-    [*] EFI runtime service support
-    Symbol: EFI
-
-    [*]   EFI stub support
-    Symbol: EFI_STUB
-
-    [ ]     EFI handover protocol (DEPRECATED)
-    Symbol: EFI_HANDOVER_PROTOCOL
-
-    [ ]     EFI mixed-mode support
-    Symbol: EFI_MIXED
+    Timer frequency (1000 HZ)  --->
+    Symbol: HZ_1000
 
     [*] Built-in kernel command line
     Symbol: CMDLINE_BOOL
 
     (root=system/root) Built-in kernel command string
-    Symbol: CMDLINE [=root=system/root]
-
+    Symbol: CMDLINE
 
 Power management and ACPI options  --->
 
@@ -987,625 +930,35 @@ Power management and ACPI options  --->
     Symbol: HIBERNATION
 
     (/dev/nvme0n1p2) Default resume partition
-    Symbol: PM_STD_PARTITION [=/dev/nvme0n1p2]
-
-    CPU Frequency scaling  --->
-
-        -*- CPU Frequency scaling
-        Symbol: CPU_FREQ
-
-        Default CPUFreq governor (ondemand)  --->
-        Symbol: CPU_FREQ_DEFAULT_GOV_ONDEMAND
-
-        <*>   ACPI Processor P-States driver
-        Symbol: X86_ACPI_CPUFREQ
-
-        <*>   AMD frequency sensitivity feedback powersave bias
-        Symbol: X86_AMD_FREQ_SENSITIVITY
-
-
-[*] Virtualization  --->
-
-    <M>   Kernel-based Virtual Machine (KVM) support
-    Symbol: KVM
-
-    <M>     KVM for AMD processors support
-    Symbol: KVM_AMD
-
-
--*- Enable the block layer  --->
-    Symbol: BLOCK
-
-    [*]   Enable support for block device writeback throttling
-    Symbol: BLK_WBT
-
-    Partition Types  --->
-
-        [*] Advanced partition selection
-        Symbol: PARTITION_ADVANCED
-
-        [*]   PC BIOS (MSDOS partition tables) support
-        Symbol: MSDOS_PARTITION
-
-        [*]   EFI GUID Partition support
-        Symbol: EFI_PARTITION
-
-
-Memory Management options  --->
-
-    [*] Disable heap randomization
-    Symbol: COMPAT_BRK
-
-    [*] Allow for memory compaction
-    Symbol: COMPACTION
-
-
-[*] Networking support  --->
-Symbol: NET
-
-    Networking options  --->
-
-        <*> Transport Layer Security support
-        Symbol: TLS
-
-        [*]   Transport Layer Security HW offload
-        Symbol: TLS_DEVICE
-
-        [*]   Transport Layer Security TCP stack bypass
-        Symbol: TLS_TOE
-
-        -*-   The IPv6 protocol  --->
-        Symbol: IPV6
-
-            [*]   IPv6: Router Preference (RFC 4191) support
-            Symbol: IPV6_ROUTER_PREF
-
-            [*]     IPv6: Route Information (RFC 4191) support
-            Symbol: IPV6_ROUTE_INFO
-
-            [*]   IPv6: Enable RFC 4429 Optimistic DAD
-            Symbol: IPV6_OPTIMISTIC_DAD
-
-            [*]   IPv6: Multiple Routing Tables
-            Symbol: IPV6_MULTIPLE_TABLES
-
-            [*]     IPv6: source address based routing
-            Symbol: IPV6_SUBTREES
-
-            [*]   IPv6: multicast routing
-            Symbol: IPV6_MROUTE
-
-            [*]     IPv6: multicast policy routing
-            Symbol: IPV6_MROUTE_MULTIPLE_TABLES
-
-            [*]     IPv6: PIM-SM version 2 support
-            Symbol: IPV6_PIMSM_V2
-
-        [*] Network packet filtering framework (Netfilter)  --->
-        Symbol: NETFILTER
-
-            <*>   IP set support  --->
-            Symbol: IP_SET
-
-        <M> 802.1Q/802.1ad VLAN Support
-        Symbol: VLAN_8021Q
-
-        [*]   GVRP (GARP VLAN Registration Protocol) support
-        Symbol: VLAN_8021Q_GVRP
-
-        [*]   MVRP (Multiple VLAN Registration Protocol) support
-        Symbol: VLAN_8021Q_MVRP
-
-        <M> Virtual Socket protocol
-        Symbol: VSOCKETS
-
-    <M>   Bluetooth subsystem support  --->
-    Symbol: BT
-
-        [*]   Bluetooth Classic (BR/EDR) features
-        Symbol: BT_BREDR
-
-        <M>     RFCOMM protocol support
-        Symbol: BT_RFCOMM
-
-        <M>     BNEP protocol support
-        Symbol: BT_BNEP
-
-        <M>     HIDP protocol support
-        Symbol: BT_HIDP
-
-        [*]   Enable Microsoft extensions
-        Symbol: BT_MSFTEXT
-
-        [*]   Enable Android Open Source Project extensions
-        Symbol: BT_AOSPEXT
-
-        Bluetooth device drivers  --->
-
-            <M> HCI USB driver
-            Symbol: BT_HCIBTUSB
-
-            Enable all HCI USB driver options.
+    Symbol: PM_STD_PARTITION
 ```
 
-### Generic Drivers
+### Mitigations
 
 ```
-Device Drivers  --->
+[*] Mitigations for CPU vulnerabilities  --->
+Symbol: CPU_MITIGATIONS
 
-    [*] PCI support  --->
-    Symbol: PCI
+    [*]   Remove the kernel mapping in user mode
+    Symbol: MITIGATION_PAGE_TABLE_ISOLATION
 
-        <*>   PCI Stub driver
-        Symbol: PCI_STUB
+    [*]   Mitigate SPECTRE V1 hardware bug
+    Symbol: MITIGATION_SPECTRE_V1
 
-        [*]   Support for PCI Hotplug  --->
-        Symbol: HOTPLUG_PCI
-
-            [*]   ACPI PCI Hotplug driver
-            Symbol: HOTPLUG_PCI_ACPI
-
-            <*>     ACPI PCI Hotplug driver IBM extensions
-            Symbol: HOTPLUG_PCI_ACPI_IBM
-
-            [*]   CompactPCI Hotplug driver
-            Symbol: HOTPLUG_PCI_CPCI
-
-            <M>     Ziatech ZT550 CompactPCI Hotplug driver
-            Symbol: HOTPLUG_PCI_CPCI_ZT5550
-
-            <M>     Generic port I/O CompactPCI Hotplug driver
-            Symbol: HOTPLUG_PCI_CPCI_GENERIC
-
-            [*]   SHPC PCI Hotplug driver
-            Symbol: HOTPLUG_PCI_SHPC
-
-        [*]     PCI Express Hotplug driver
-        Symbol: HOTPLUG_PCI_PCIE
-
-    Generic Driver Options  --->
-
-        Firmware loader  --->
-
-            [*]   Enable compressed firmware support
-            Symbol: FW_LOADER_COMPRESS
-
-            [*]     Enable XZ-compressed firmware support
-            Symbol: FW_LOADER_COMPRESS_XZ
-
-            [*]     Enable ZSTD-compressed firmware support
-            Symbol: FW_LOADER_COMPRESS_ZSTD
-
-    [*] Block devices  --->
-    Symbol: BLK_DEV
-
-        <*>   Compressed RAM block device support
-        Symbol: ZRAM
-
-        [*]     lz4 compression support
-        Symbol: ZRAM_BACKEND_LZ4
-
-        [*]     lz4hc compression support
-        Symbol: ZRAM_BACKEND_LZ4HC
-
-        [*]     zstd compression support
-        Symbol: ZRAM_BACKEND_ZSTD
-
-        [*]     deflate compression support
-        Symbol: ZRAM_BACKEND_DEFLATE
-
-        [*]     lzo and lzo-rle compression support
-        Symbol: ZRAM_BACKEND_LZO
-
-        <*>   Loopback device support
-        Symbol: BLK_DEV_LOOP
-
-        (0)     Number of loop devices to pre-create at init time
-        Symbol: BLK_DEV_LOOP_MIN_COUNT [=0]
-
-    NVME Support  --->
-
-        <*> NVM Express block device
-        Symbol: BLK_DEV_NVME
-
-        [*] NVMe multipath support
-        Symbol: NVME_MULTIPATH
-
-        [*] NVMe hardware monitoring
-        Symbol: NVME_HWMON
-
-    SCSI device support  --->
-
-        <*> SCSI disk support
-        Symbol: BLK_DEV_SD
-
-        <M> SCSI CDROM support
-        Symbol: BLK_DEV_SR
-
-        <M> SCSI generic support
-        Symbol: BLK_DEV_SG
-
-    -*- Network device support  --->
-    Symbol: NETDEVICES
-
-        [*]   Network core driver support
-        Symbol: NET_CORE
-
-        <M>     MAC-VLAN support
-        Symbol: MACVLAN
-
-        <M>     IP-VLAN support
-        Symbol: IPVLAN
-
-        <M>     Virtual eXtensible Local Area Network (VXLAN)
-        Symbol: VXLAN
-
-        <M>     Generic Network Virtualization Encapsulation
-        Symbol: GENEVE
-
-        <M>     Universal TUN/TAP device driver support
-        Symbol: TUN
-
-        -*-   Ethernet driver support
-        Symbol: ETHERNET
-
-            Disable everything.
-
-        <*>   USB Network Adapters  --->
-        Symbol: USB_NET_DRIVERS
-
-            Disable everything.
-
-        [*]   Wireless LAN  --->
-        Symbol: WLAN
-
-            Disable everything.
-
-        [*]   Wan interfaces support  --->
-        Symbol: WAN
-
-            Disable everything.
-
-    Input device support  --->
-
-        -*- Generic input layer (needed for keyboard, mouse, ...)
-        Symbol: INPUT
-
-        [*]   Miscellaneous devices  --->
-        Symbol: INPUT_MISC
-
-            <*>   User level driver support
-            Symbol: INPUT_UINPUT
-
-    [*] USB support  --->
-    Symbol: USB_SUPPORT
-
-        <*>   USB Mass Storage support
-        Symbol: USB_STORAGE
-
-        <*>     USB Attached SCSI
-        Symbol: USB_UAS
-
-        <*>   USB Type-C Support  --->
-        Symbol: TYPEC
-
-            <*>   USB Type-C Connector System Software Interface driver
-            Symbol: TYPEC_UCSI
-
-            <*>     UCSI ACPI Interface Driver
-            Symbol: UCSI_ACPI
-
-    {*} Userspace I/O drivers  --->
-    Symbol: UIO
+    Disable everything else.
 ```
-
-### Hardware Drivers
-
-```
-Memory Management options  --->
-
-    [*] Enable recovery from hardware memory errors
-    Symbol: MEMORY_FAILURE
-
-Device Drivers  --->
-
-    SCSI device support  --->
-
-        [*] SCSI low-level drivers  --->
-        Symbol: SCSI_LOWLEVEL
-
-            <M>   Chelsio T3 iSCSI support
-            Symbol: SCSI_CXGB3_ISCSI
-
-            <M>   Chelsio T4 iSCSI support
-            Symbol: SCSI_CXGB4_ISCSI
-
-            <M>   QLogic NetXtreme II iSCSI support
-            Symbol: SCSI_BNX2_ISCSI
-
-            <M>   Emulex 10Gbps iSCSI - BladeEngine 2
-            Symbol: BE2ISCSI
-
-    SCSI device support  --->
-
-        [*] SCSI low-level drivers  --->
-        Symbol: SCSI_LOWLEVEL
-
-            <*>   QLogic ISP4XXX and ISP82XX host adapter family support
-            Symbol: SCSI_QLA_ISCSI
-
-    [*] Network device support
-    Symbol: NETDEVICES
-
-        -*-   Ethernet driver support  --->
-        Symbol: ETHERNET
-
-            [*]   Chelsio devices
-            Symbol: NET_VENDOR_CHELSIO
-
-            <M>     Chelsio Communications T3 10Gb Ethernet support
-            Symbol: CHELSIO_T3
-
-            <M>     Chelsio Communications T4/T5/T6 Ethernet support
-            Symbol: CHELSIO_T4
-
-        <M>   USB Network Adapters  --->
-        Symbol: USB_NET_DRIVERS
-
-            <M>   Multi-purpose USB Networking Framework
-            Symbol: USB_USBNET
-
-            Disable all "USB Network Adapters" entries.
-
-            <M>     CDC Ethernet support (smart devices such as cable modems)
-            Symbol: USB_NET_CDCETHER
-
-        [*]   Wireless LAN  --->
-        Symbol: WLAN
-
-            [*]   Atheros/Qualcomm devices
-            Symbol: WLAN_VENDOR_ATH
-
-            <M>     Qualcomm Technologies 802.11ax chipset support
-            Symbol: ATH11K
-
-            <M>       Atheros ath11k PCI support
-            Symbol: ATH11K_PCI
-
-        Wireless WAN  --->
-
-            <M> WWAN Driver Core
-            Symbol: WWAN
-
-            <M>   MediaTek PCIe 5G WWAN modem T7xx device
-            Symbol: MTK_T7XX
-
-    Input device support  --->
-
-        -*- Generic input layer (needed for keyboard, mouse, ...)
-        Symbol: INPUT
-
-        <*>   Joystick interface
-        Symbol: INPUT_JOYDEV
-
-        Hardware I/O ports  --->
-
-            <*> Raw access to serio ports
-            Symbol: SERIO_RAW
-
-    I2C support  --->
-
-        -*- I2C support
-        Symbol: I2C
-
-        I2C Hardware Bus support  --->
-
-            <*> Intel PIIX4 and compatible (ATI/AMD/Serverworks/Broadcom/SMSC)
-            Symbol: I2C_PIIX4
-
-    -*- Hardware Monitoring support  --->
-    Symbol: HWMON
-
-        <*>   AMD Family 10h+ temperature sensor
-        Symbol: SENSORS_K10TEMP
-
-    [*] Watchdog Timer Support  --->
-    Symbol: WATCHDOG
-
-        <*>   AMD/ATI SP5100 TCO Timer/Watchdog
-        Symbol: SP5100_TCO
-
-    <M> Multimedia support  --->
-    Symbol: MEDIA_SUPPORT
-
-        Media core support  --->
-
-            <M> Video4Linux core
-            Symbol: VIDEO_DEV
-
-        Media drivers  --->
-
-            [*] Media USB Adapters  --->
-            Symbol: MEDIA_USB_SUPPORT
-
-                <M>   USB Video Class (UVC)
-                Symbol: USB_VIDEO_CLASS
-
-    Graphics support  --->
-
-        <*> Direct Rendering Manager (XFree86 4.1.0 and higher DRI support)  --->
-        Symbol: DRM
-
-            <*>   AMD GPU
-            Symbol: DRM_AMDGPU
-
-    <*> Sound card support  --->
-    Symbol: SOUND
-
-        <*>   Advanced Linux Sound Architecture  --->
-        Symbol: SND
-
-            HD-Audio  --->
-
-                <*> HD Audio PCI
-                Symbol: SND_HDA_INTEL
-
-                <*> Build Realtek HD-audio codec support
-                Symbol: SND_HDA_CODEC_REALTEK
-
-                <*> Build HDMI/DisplayPort HD-audio codec support
-                Symbol: SND_HDA_CODEC_HDMI
-
-                <*> Enable generic HD-audio codec parser
-                Symbol: SND_HDA_GENERIC
-
-                Build HDMI/DisplayPort HD-audio codec support
-
-            [*]   USB sound devices  --->
-            Symbol: SND_USB
-
-                <*>   USB Audio/MIDI driver
-                Symbol: SND_USB_AUDIO
-
-                <*>   Edirol UA-101/UA-1000 driver
-                Symbol: SND_USB_UA101
-
-            <*>   ALSA for SoC audio support  --->
-            Symbol: SND_SOC
-
-                <*>   AMD Audio Coprocessor-v3.x support
-                Symbol: SND_SOC_AMD_ACP3x
-
-                <*>   AMD Audio Coprocessor - Renoir support
-                Symbol: SND_SOC_AMD_RENOIR
-
-                <*>   AMD Audio Coprocessor-v5.x I2S support
-                Symbol: SND_SOC_AMD_ACP5x
-
-                <*>   AMD Audio Coprocessor-v6.x Yellow Carp support
-                Symbol: SND_SOC_AMD_ACP6x
-
-                <*>     AMD YC support for DMIC
-                Symbol: SND_SOC_AMD_YC_MACH
-
-                <*>   AMD Audio Coprocessor-v6.2 RPL support
-                Symbol: SND_SOC_AMD_RPL_ACP6x
-
-                <*>   support for AMD platforms with ACP version >= 6.3
-                Symbol: SND_SOC_AMD_ACP63_TOPLEVEL
-
-                <*>     AMD Audio Coprocessor-v6.3 Pink Sardine support
-                Symbol: SND_SOC_AMD_PS
-
-                <*>       AMD PINK SARDINE support for DMIC
-                Symbol: SND_SOC_AMD_PS_MACH
-
-                [ ]   Intel ASoC SST drivers
-                Symbol: SND_SOC_INTEL_SST_TOPLEVEL
-
-                [*]   Sound Open Firmware Support  --->
-                Symbol: SND_SOC_SOF_TOPLEVEL
-
-                    <*>   SOF PCI enumeration support
-                    Symbol: SND_SOC_SOF_PCI
-
-                    <*>   SOF support for AMD audio DSPs
-                    Symbol: SND_SOC_SOF_AMD_TOPLEVEL
-
-                    <*>     SOF support for RENOIR
-                    Symbol: SND_SOC_SOF_AMD_RENOIR
-
-                    <*>     SOF support for REMBRANDT
-                    Symbol: SND_SOC_SOF_AMD_REMBRANDT
-
-                CODEC drivers  --->
-
-                    <*> Build generic ASoC AC97 CODEC driver
-                    Symbol: SND_SOC_AC97_CODEC
-
-    [*] HID bus support  --->
-    Symbol: HID_SUPPORT
-
-        -*-   HID bus core support
-        Symbol: HID
-
-        Special HID drivers  --->
-
-            <*> HID Multitouch panels
-            Symbol: HID_MULTITOUCH
-
-        <*>   I2C HID support  --->
-        Symbol: I2C_HID
-
-            <*>   HID over I2C transport layer ACPI driver
-            Symbol: I2C_HID_ACPI
-
-    <*> EDAC (Error Detection And Correction) reporting  --->
-    Symbol: EDAC
-
-        <*>   Decode MCEs in human-readable form (only on AMD for now)
-        Symbol: EDAC_DECODE_MCE
-
-    [ ] Microsoft Surface Platform-Specific Device Drivers  ----
-    Symbol: SURFACE_PLATFORMS
-
-    -*- X86 Platform Specific Device Drivers  --->
-    Symbol: X86_PLATFORM_DEVICES
-
-        <*>   ThinkPad ACPI Laptop Extras
-        Symbol: THINKPAD_ACPI
-
-        <*>   Lenovo WMI-based systems management driver
-        Symbol: THINKPAD_LMI
-
-        Search for "FW_ATTR_CLASS" and make sure it's also enabled.
-
-    [*] Generic powercap sysfs driver  --->
-    Symbol: POWERCAP
-
-        <*>   Intel RAPL Support via MSR Interface
-        Symbol: INTEL_RAPL
-
-    [*] Reliability, Availability and Serviceability (RAS) features  --->
-    Symbol: RAS
-
-        [*]   Correctable Errors Collector
-        Symbol: RAS_CEC
-
-        <*>   AMD Address Translation Library
-        Symbol: AMD_ATL
-
-    <*> Unified support for USB4 and Thunderbolt  --->
-    Symbol: USB4
-
-Library routines  --->
-
-    <*> CRC calculation for the T10 Data Integrity Field
-    Symbol: CRC_T10DIF
-
--*- Cryptographic API  --->
-Symbol: CRYPTO
-
-    Accelerated Cryptographic Algorithms for CPU (x86)  --->
-
-        Enable everything.
-
-    [*]   Hardware crypto devices  --->
-    Symbol: CRYPTO_HW
-
-        [*]   Support for AMD Secure Processor
-        Symbol: CRYPTO_DEV_CCP
-
-        <*>     Secure Processor device driver
-        Symbol: CRYPTO_DEV_CCP_DD
-```
-
-<!--
-CONFIG_CPU_MITIGATIONS
-Linux Kernel Configuration
-└─>Mitigations for CPU vulnerabilities
--->
 
 ```sh
+# Mount UEFI boot partition.
+mount /boot
+
+# Build and install kernel.
 time make -j17
+make modules_prepare
+make modules_install
+make install
+
+# Create and install initramfs.
+bliss-initramfs -k X.Y.ZZ-gentoo
+mv initrd-X.Y.ZZ-gentoo /boot/
 ```

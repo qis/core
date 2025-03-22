@@ -1,6 +1,6 @@
 # Bootloader
 sys-apps/busybox
-sys-boot/grub
+sys-apps/systemd
 sys-kernel/bliss-initramfs
 
 # Compression
@@ -11,21 +11,18 @@ app-arch/zip
 dev-libs/libzip
 
 # Development
+dev-build/cmake
+dev-build/ninja
 dev-db/sqlite
 dev-lang/nasm
 dev-lang/perl
 dev-lang/python
-dev-lang/rust
 dev-lang/yasm
 dev-libs/boost
 dev-libs/botan
 dev-python/pip
-dev-util/cmake
-dev-util/ninja
 dev-util/patchelf
 dev-vcs/git
-sys-devel/clang
-sys-devel/llvm
 
 # Editor
 app-editors/neovim

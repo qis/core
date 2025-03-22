@@ -1,6 +1,10 @@
 # Development
 dev-lang/go
+dev-lang/rust
 dev-java/*
+
+# LLVM
+llvm-core/*
 
 # Editor
 app-editors/vim

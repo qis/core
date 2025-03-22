@@ -40,7 +40,7 @@ ssh root@core
 ls /sys/firmware/efi
 
 # Synchronize time.
-chronyd -q 'server 0.gentoo.pool.ntp.org iburst'
+chronyd -q 'server ntp1.vniiftri.ru iburst'
 
 # List block devices.
 lsblk
@@ -71,8 +71,13 @@ mkfs.fat -F32 /dev/nvme0n1p1
 mkswap /dev/nvme0n1p2
 swapon /dev/nvme0n1p2
 
-# Create root filesystem.
+# Load ZFS kernel module.
 modprobe zfs
+
+# Optional: Destroy existing dataset and all data.
+# zpool destroy system
+
+# Create root filesystem.
 zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
 
 # Create system datasets.
@@ -91,40 +96,42 @@ mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
 # Import "Gentoo Linux Release Engineering (Automated Weekly Release Key) <releng@gentoo.org>" key.
 wget -O - https://qa-reports.gentoo.org/output/service-keys.gpg | gpg --import
 
-# Download and extract stage 3 tarball using a mirror from https://www.gentoo.org/downloads/mirrors/.
-export stage3=20250309T170330Z
+# Download and verify stage 3 tarball.
+export stage3=20250315T023326Z
 export remote=releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd
 export mirror=https://mirror.yandex.ru/gentoo-distfiles
 
 curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
-     -o /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz
+     -o /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz
 
 curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc \
-     -o /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc
+     -o /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc
 
 curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS \
-     -o /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS
+     -o /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS
 
 curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz \
-     -o /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz
+     -o /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz
 
-env --chdir /mnt/gentoo sha512sum --check stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS
-env --chdir /mnt/gentoo gpg --verify stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc
+env --chdir /tmp sha512sum --check stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS
+env --chdir /tmp gpg --verify stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc
 
-echo tar xpf /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
-  --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo > /tmp/extract.sh
+# Extract stage 3 tarball.
+tar xpf /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
+  --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
 
-sh /tmp/extract.sh
-
-rm -f /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
-      /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc \
-      /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS \
-      /mnt/gentoo/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz \
+rm -f /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
+      /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc \
+      /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS \
+      /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz \
       /tmp/extract.sh
 
 # Redirect /var/tmp.
 rmdir /mnt/gentoo/var/tmp
 ln -s ../tmp /mnt/gentoo/var/tmp
+
+# Create opt symlink.
+ln -s ../opt /mnt/gentoo/usr/opt
 
 # Copy zpool cache.
 mkdir /mnt/gentoo/etc/zfs
@@ -144,6 +151,9 @@ cp -L /etc/resolv.conf /mnt/gentoo/etc/
 
 # Configure CPU flags.
 echo "*/* `cpuid2cpuflags`" > /mnt/gentoo/etc/portage/package.use/flags
+
+# Make sure /proc/config.gz is available.
+modprobe configs
 
 # Chroot into system.
 chroot /mnt/gentoo /bin/bash
@@ -204,7 +214,7 @@ cp /usr/share/portage/config/repos.conf /etc/portage/repos.conf
 emerge --sync
 
 # Read portage news.
-eselect news read
+eselect news read | less
 
 # Create sets directory.
 mkdir /etc/portage/sets
@@ -219,16 +229,12 @@ wget https://raw.githubusercontent.com/qis/core/master/package.use/core \
 wget https://raw.githubusercontent.com/qis/core/master/sets/core \
   -O /etc/portage/sets/core
 
-# Install freetype without circular dependencies.
-USE="-harfbuzz" emerge -1 media-libs/freetype
-
 # Install curl without circular dependencies.
 USE="-http2 -http3 -pop3 -smtp -quic -curl_quic_openssl" emerge -1 net-misc/curl
-
-# Install curl.
 emerge net-misc/curl
 
-# Install freetype and hafbuzz.
+# Install freetype and hafbuzz without circular dependencies.
+USE="-harfbuzz" emerge -1 media-libs/freetype
 emerge media-libs/harfbuzz && emerge media-libs/freetype
 
 # Verify that the @world set has no conflicts.
@@ -240,17 +246,28 @@ echo "=sys-kernel/gentoo-sources-6.12.16 ~amd64" > /etc/portage/package.accept_k
 echo "=sys-kernel/gentoo-sources-6.12.16 symlink" > /etc/portage/package.use/kernel
 emerge -avnuU =sys-kernel/gentoo-sources-6.12.16 sys-kernel/linux-firmware
 
-# Configure kernel (see "Kernel" section for more details).
-curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
-cd /usr/src/linux
-make distclean
-make menuconfig
+# Verify AMD microcode image.
+ls -lh /boot/amd-uc.img
 
-# Build and install kernel.
-make -j17
-make modules_prepare
-make modules_install
-make install
+# Clean kernel.
+cd /usr/src/linux
+make clean mrproper distclean
+
+# Option 1: Use genkernel(8) to configure and build the kernel.
+# emerge -avn sys-kernel/genkernel
+# cp /etc/genkernel.conf /etc/genkernel.conf.orig
+# curl -L https://raw.githubusercontent.com/qis/core/master/genkernel.conf -o /etc/genkernel.conf
+# genkernel kernel
+
+# Option 2: Manually configure and build the kernel.
+# curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
+# gzip -dc /proc/config.gz > /usr/src/linux/.config
+# make oldconfig
+# make menuconfig
+# make -j17
+# make modules_prepare
+# make modules_install
+# make install
 
 # Rebuild @world set.
 emerge -ave @world
@@ -260,42 +277,39 @@ emerge -ac
 emerge -avn @core
 emerge -ac
 
+# Create nvim symlinks.
+ln -s nvim /usr/bin/vim
+ln -s nvim /usr/bin/vi
+
 # Enable filesystem services.
 systemctl enable zfs.target
 systemctl enable zfs-import-cache
 systemctl enable zfs-mount
 systemctl enable zfs-import.target
 
-# Check if GRUB can detect the FAT filesystem.
-grub-probe /boot
-
 # Remount NVRAM variables (efivars) with read/write access.
-mount -o remount,rw /sys/firmware/efi/efivars/
+mount -o remount,rw /sys/firmware/efi/efivars
 
-# Create GRUB config.
-tee /etc/default/grub >/dev/null <<'EOF'
-GRUB_DISTRIBUTOR="Gentoo"
-GRUB_SAVEDEFAULT=true
-GRUB_DEFAULT=0
-GRUB_TIMEOUT=1
-GRUB_TIMEOUT_STYLE=menu
-GRUB_DEVICE="system/root"
-GRUB_FONT="/boot/grub/fonts/terminus.pf2"
-GRUB_CMDLINE_LINUX="by=id init=/usr/lib/systemd/systemd"
-GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} elevator=noop net.ifnames=0"
-GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} acpi_enforce_resources=lax"
-GRUB_CMDLINE_LINUX="${GRUB_CMDLINE_LINUX} amdgpu.gpu_recovery=1"
-GRUB_CMDLINE_LINUX_DEFAULT="quiet"
-GRUB_DISABLE_LINUX_PARTUUID=true
-GRUB_DISABLE_LINUX_UUID=true
-GRUB_DISABLE_OS_PROBER=true
-GRUB_DISABLE_RECOVERY=true
-GRUB_DISABLE_SUBMENU=true
+# Install systemd-boot to ESP.
+bootctl install
+
+# Configure systemd-boot.
+tee /boot/loader/loader.conf >/dev/null <<'EOF'
+timeout 3
+default @saved
+console-mode keep
+auto-firmware false
+auto-entries true
+editor false
+beep false
 EOF
 
-# Install GRUB bootloader.
-grub-install --efi-directory=/boot --removable
-grub-mkfont -s 32 -o /boot/grub/fonts/terminus.pf2 /usr/share/fonts/terminus/ter-u32b.otb
+tee /boot/loader/entries/linux.conf >/dev/null <<'EOF'
+title Linux
+linux /vmlinuz-6.12.16-gentoo
+initrd /initrd-6.12.16-gentoo
+options root=system/root ro acpi_enforce_resources=lax quiet
+EOF
 
 # Add "nvme" to "modules" in bliss-initramfs settings.
 jq '.modules.files += [ "nvme" ]' \
@@ -303,21 +317,11 @@ jq '.modules.files += [ "nvme" ]' \
   /etc/bliss-initramfs/settings.json
 
 # Generate kernel initarmfs.
-bliss-initramfs -k 6.1.31-gentoo
-mv initrd-6.1.31-gentoo /boot/
-
-# Update GRUB config.
-grub-mkconfig -o /boot/grub/grub.cfg
-sed 's; root=ZFS=[^ ]*; root=system/root;' -i /boot/grub/grub.cfg
-grep vmlinuz /boot/grub/grub.cfg
-
-# Configure modules.
-mkdir /etc/modprobe.d
-tee /etc/modprobe.d/blacklist.conf >/dev/null <<'EOF'
-blacklist pcspkr
-EOF
+bliss-initramfs -k 6.12.16-gentoo
+mv initrd-6.12.16-gentoo /boot/
 
 # Configure virtual memory.
+mkdir -p /etc/sysctl.d
 tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
 vm.max_map_count=2147483642
 vm.swappiness=1
@@ -337,15 +341,15 @@ cd /etc/xdg/nvim/pack/plugins/opt/telescope-fzf-native
 cmake -DCMAKE_BUILD_TYPE=Release -B build
 cmake --build build
 
-# Create nvim symlinks.
+# Create nvim config symlink.
+mkdir -p /root/.config
 ln -s ../../etc/xdg/nvim /root/.config/nvim
-ln -s nvim /usr/bin/vim
 
 # Configure editor.
 echo "EDITOR=/usr/bin/vim" > /etc/env.d/01editor
 
 # Configure time zone.
-ln -snf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+ln -snf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 
 # Configure shell.
 curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/bash/bashrc.d/core
@@ -425,6 +429,7 @@ chmod +x /lib/systemd/system-sleep/wifi.sh
 
 # Configure sensors and fan.
 emerge -avn app-laptop/thinkfan
+systemctl enable thinkfan
 
 tee /etc/modprobe.d/thinkpad.conf >/dev/null <<'EOF'
 options thinkpad_acpi fan_control=1
@@ -447,8 +452,6 @@ levels:
   - ["level full-speed", 95, 32767]
 EOF
 
-systemctl enable thinkfan
-
 # Configure power button and lid switch.
 tee -a /etc/systemd/logind.conf >/dev/null <<'EOF'
 HandlePowerKey=suspend
@@ -459,8 +462,8 @@ EOF
 
 # Configure pulseaudio.
 emerge -avn media-sound/pulseaudio media-sound/sox
-
 systemctl --global enable pulseaudio pulseaudio.socket
+
 tee -a /etc/pulse/daemon.conf >/dev/null <<'EOF'
 default-sample-rate = 44100
 alternate-sample-rate = 48000
@@ -468,17 +471,10 @@ EOF
 
 # Configure python.
 pip config set global.target ~/.pip
+
 tee /etc/profile.d/pip.sh >/dev/null <<'EOF'
 export PATH="${PATH}:${HOME}/.pip/bin"
 export PYTHONPATH="${HOME}/.pip"
-EOF
-
-# Configure node.
-emerge -avn net-libs/nodejs
-
-npm config set prefix ~/.npm
-tee /etc/profile.d/npm.sh >/dev/null <<'EOF'
-export PATH="${PATH}:${HOME}/.npm/bin"
 EOF
 
 # Configure application path.
@@ -500,7 +496,7 @@ DOCUMENTS=documents
 DESKTOP=.local/desktop
 PUBLICSHARE=.local/public
 TEMPLATES=.local/templates
-PICTURES=documents/pictures
+PICTURES=.local/pictures
 VIDEOS=.local/videos
 MUSIC=.local/music
 EOF
@@ -510,21 +506,9 @@ env-update
 source /etc/profile
 export PS1="(chroot) ${PS1}"
 
-# Enable GURU repository.
-emerge -avn app-eselect/eselect-repository
-eselect repository enable guru
-emaint sync -r guru
-
-# Read portage news.
-eselect news read
-
 # Install multimedia utilities.
 emerge -avn media-sound/{ncpamixer,pulseaudio-ctl}
 ln -s ncpamixer /usr/bin/mixer
-
-# Update @world set.
-emerge -auUD @world
-emerge -ac
 
 # Add user.
 useradd -m -G users,seat,wheel,audio,input,usb,video -s /bin/bash qis
@@ -1474,3 +1458,15 @@ TODO
 ```
 
 </details>
+
+
+<!--
+# Add GURU repository.
+emerge -avn app-eselect/eselect-repository
+eselect repository enable guru
+emaint sync -r guru
+
+# Update @world set.
+emerge -auUD @world
+emerge -ac
+-->
