@@ -4,13 +4,6 @@ Lenovo X13 Gen 3 AMD setup instructions.
 * UEFI Menu: F1
 * BOOT Menu: F12
 
-<!--
-Boot0000  calculate HD(2,GPT,35d52d20-ca5f-124b-84cf-43187cdd8d6a,0x77358000,0x6528f)/File(\EFI\calculate\grubx64.efi)
-
-efibootmgr -b 0000 -B
-efibootmgr -c -w -d /dev/nvme0n1 -p 0 -l /EFI/BOOT/BOOTX64.EFI -L "Core"
--->
-
 ```
 CPU: AMD Ryzen 7 PRO 6850U
 VGA: 2560x1600
@@ -192,7 +185,6 @@ L10N="en en-US"
 
 # Portage
 FEATURES="buildpkg"
-GRUB_PLATFORMS="efi-64"
 ACCEPT_LICENSE="* -@EULA"
 CONFIG_PROTECT="/var/bind"
 EMERGE_DEFAULT_OPTS="--with-bdeps=y --keep-going=y --quiet-build=y"
@@ -1056,11 +1048,6 @@ EOF
 curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/profile.d/bash.sh
 rm -f /root/.bashrc /home/qis/.bashrc
 
-# Configure bootloader.
-sed -E 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/g' -i /etc/default/grub
-sed -E 's/GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="video=Virtual-1:2560x1600@75 quiet"/g' -i /etc/default/grub
-update-grub2
-
 # Configure git.
 git config --global core.eol lf
 git config --global core.autocrlf false
@@ -1210,13 +1197,13 @@ eselect news read
 
 # Update linux kernel sources.
 emerge -s '^sys-kernel/gentoo-sources$'
-echo "=sys-kernel/gentoo-sources-X.Y.ZZ ~amd64" > /etc/portage/package.accept_keywords/kernel
-echo "=sys-kernel/gentoo-sources-X.Y.ZZ symlink" > /etc/portage/package.use/kernel
-emerge -avn =sys-kernel/gentoo-sources-X.Y.ZZ
+echo "=sys-kernel/gentoo-sources-X.YY.ZZ ~amd64" > /etc/portage/package.accept_keywords/kernel
+echo "=sys-kernel/gentoo-sources-X.YY.ZZ symlink" > /etc/portage/package.use/kernel
+emerge -avn =sys-kernel/gentoo-sources-X.YY.ZZ
 
 # Update linux kernel sources symlink.
 eselect kernel list
-eselect kernel set linux-X.Y.ZZ-gentoo
+eselect kernel set linux-X.YY.ZZ-gentoo
 eselect kernel show
 readlink /usr/src/linux
 
@@ -1237,13 +1224,8 @@ make install
 emerge -av @module-rebuild
 
 # Generate kernel initarmfs.
-bliss-initramfs -k X.Y.ZZ-gentoo
-mv initrd-X.Y.ZZ-gentoo /boot/
-
-# Update GRUB config.
-grub-mkconfig -o /boot/grub/grub.cfg
-sed 's; root=ZFS=[^ ]*; root=system/root;' -i /boot/grub/grub.cfg
-grep vmlinuz /boot/grub/grub.cfg
+bliss-initramfs -k X.YY.ZZ-gentoo
+mv initrd-X.YY.ZZ-gentoo /boot/
 
 # Reboot system.
 reboot
