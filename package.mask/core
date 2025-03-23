@@ -1,6 +1,7 @@
 # Development
 dev-lang/go
 dev-lang/rust
+dev-lang/rust-bin
 dev-java/*
 
 # LLVM

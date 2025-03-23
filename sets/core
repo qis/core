@@ -32,8 +32,6 @@ dev-libs/botan
 app-editors/neovim
 dev-libs/tree-sitter
 dev-python/pynvim
-sys-apps/fd
-sys-apps/ripgrep
 
 # Filesystem
 sys-block/parted

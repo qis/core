@@ -10,7 +10,15 @@ VGA: 2560x1600
 RAM: 32 GiB
 ```
 
-Use "Admin CD" from <https://www.gentoo.org/downloads/> to create a memory stick.
+Download "Admin CD" from <https://www.gentoo.org/downloads/> and create a memory stick.
+
+```sh
+curl -L https://raw.githubusercontent.com/qis/core/master/download.sh -o download.sh
+sh download.sh gpg
+sh download.sh admin
+```
+
+Boot "Admin CD" image.
 
 ```sh
 # Change root password.
@@ -81,38 +89,13 @@ chmod 1777 /mnt/gentoo/tmp
 mkdir /mnt/gentoo/boot
 mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
 
-# Import "Gentoo Linux Release Engineering (Automated Weekly Release Key) <releng@gentoo.org>" key.
-wget -O - https://qa-reports.gentoo.org/output/service-keys.gpg | gpg --import
-
-# Download and verify stage 3 tarball.
-# https://mirror.yandex.ru/gentoo-distfiles/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd
-export stage3=20250315T023326Z
-export remote=releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd
-export mirror=https://mirror.yandex.ru/gentoo-distfiles
-
-curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
-     -o /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz
-
-curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc \
-     -o /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc
-
-curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS \
-     -o /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS
-
-curl -L ${mirror}/${remote}/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz \
-     -o /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz
-
-env --chdir /tmp sha512sum --check stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS
-env --chdir /tmp gpg --verify stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc
-
-# Extract stage 3 tarball.
-tar xpf /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
-  --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
-
-rm -f /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz \
-      /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.asc \
-      /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.DIGESTS \
-      /tmp/stage3-amd64-nomultilib-systemd-${stage3}.tar.xz.CONTENTS.gz
+# Download and extract stage tarball.
+cd /tmp
+curl -L https://raw.githubusercontent.com/qis/core/master/download.sh -o download.sh
+sh download.sh gpg
+sh download.sh stage
+tar xpf stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
+rm -f download.sh stage.tar.xz stage.tar.xz.asc
 
 # Redirect /var/tmp.
 rmdir /mnt/gentoo/var/tmp
@@ -253,49 +236,6 @@ Gentoo Linux  --->
         [*] systemd
         Symbol: GENTOO_LINUX_INIT_SYSTEMD
 
-Kernel hacking  --->
-
-    Kernel Testing and Coverage  --->
-
-        [ ] Runtime Testing  ----
-        Symbol: RUNTIME_TESTING_MENU
-
-        [ ] Memtest
-        Symbol: MEMTEST
-
-File systems  --->
-
-    DOS/FAT/EXFAT/NT Filesystems  --->
-
-        <*> MSDOS fs support
-        Symbol: MSDOS_FS
-
-        <*> VFAT (Windows-95) fs support
-        Symbol: VFAT_FS
-
-        <*> exFAT filesystem support
-        Symbol: EXFAT_FS
-
-        < > NTFS file system support
-        Symbol: NTFS_FS
-
-        < > NTFS Read-Write file system support
-        Symbol: NTFS3_FS
-
-    -*- Native language support  --->
-
-        (utf8) Default NLS Option
-        Symbol: NLS_DEFAULT
-
-        <*>   Codepage 437 (United States, Canada)
-        Symbol: NLS_CODEPAGE_437
-
-        <*>   ASCII (United States)
-        Symbol: NLS_ASCII
-
-        <*>   NLS UTF-8
-        Symbol: NLS_UTF8
-
 General setup  --->
 
     (/lib/systemd/systemd) Default init path
@@ -343,6 +283,60 @@ Power management and ACPI options  --->
     (/dev/nvme0n1p2) Default resume partition
     Symbol: PM_STD_PARTITION
 
+File systems  --->
+
+    DOS/FAT/EXFAT/NT Filesystems  --->
+
+        <*> MSDOS fs support
+        Symbol: MSDOS_FS
+
+        <*> VFAT (Windows-95) fs support
+        Symbol: VFAT_FS
+
+        <*> exFAT filesystem support
+        Symbol: EXFAT_FS
+
+        < > NTFS file system support
+        Symbol: NTFS_FS
+
+        < > NTFS Read-Write file system support
+        Symbol: NTFS3_FS
+
+    -*- Native language support  --->
+
+        {*}   NLS UTF-8
+        Symbol: NLS_UTF8
+
+Device Drivers  --->
+
+    Graphics support  --->
+
+        Frame buffer Devices  --->
+
+            <*> Support for frame buffer device drivers  --->
+            Symbol: FB
+
+                [*]   EFI-based Framebuffer Support
+                Symbol: FB_EFI
+
+                Disable everything else.
+
+            Disable everything else.
+
+Library routines  --->
+
+    [*] Select compiled-in fonts
+    Symbol: FONTS
+
+        [ ]   VGA 8x16 font
+        Symbol: FONT_8x16
+
+        [ ]   Medium-size 6x10 font
+        Symbol: FONT_6x10
+
+        [*] Terminus 16x32 font (not supported by all drivers)
+        Symbol: FONT_TER16x32
+
 [*] Mitigations for CPU vulnerabilities  --->
 Symbol: CPU_MITIGATIONS
 
@@ -379,6 +373,21 @@ emerge -ac
 # Create nvim symlinks.
 ln -s nvim /usr/bin/vim
 ln -s nvim /usr/bin/vi
+
+# Test framebuffer console.
+# cat /usr/share/consolefonts/README.psfu
+# cat /usr/share/consolefonts/README.terminus
+# ls /usr/share/consolefonts/ | grep ter-v16n
+# ls /usr/share/unimaps/ | grep 8859-15
+# setfont ter-v16n -m 8859-15
+# loadkeys ru
+
+# Configure framebuffer console.
+tee /etc/vconsole.conf >/dev/null <<'EOF'
+KEYMAP=ru
+FONT=ter-v16n
+FONT_MAP=8859-15
+EOF
 
 # Enable filesystem services.
 systemctl enable zfs.target
@@ -464,6 +473,7 @@ systemctl enable sshd
 systemctl enable dhcpcd
 systemctl enable systemd-networkd
 systemctl enable systemd-resolved
+
 tee /etc/systemd/network/eth0.network >/dev/null <<'EOF'
 [Match]
 Name=eth0
@@ -666,6 +676,7 @@ ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 # Merge config changes.
 # Press 'q' to quit pager.
 # Press 'n' to skip patch.
+# Press 'z' to drop patch.
 dispatch-conf
 
 # Set root password.
