@@ -74,6 +74,8 @@ swapon /dev/nvme0n1p2
 modprobe zfs
 
 # Create root filesystem.
+# zpool destroy system
+# zpool import -R /mnt/gentoo system
 zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
 
 # Create system datasets.
@@ -164,7 +166,7 @@ ACCEPT_LICENSE="* -@EULA"
 CONFIG_PROTECT="/var/bind"
 EMERGE_DEFAULT_OPTS="--with-bdeps=y --keep-going=y --quiet-build=y"
 GENTOO_MIRRORS="https://mirror.yandex.ru/gentoo-distfiles/"
-VIDEO_CARDS="fbdev amdgpu radeon radeonsi r600"
+VIDEO_CARDS="fbdev amdgpu"
 INPUT_DEVICES="libinput synaptics wacom"
 LUA_SINGLE_TARGET="luajit"
 SANE_BACKENDS="net pixma"
@@ -218,6 +220,12 @@ ls -lh /usr/src/linux
 # Verify AMD microcode image.
 ls -lh /boot/amd-uc.img
 
+# Install genkernel dependencies.
+emerge sys-apps/busybox media-fonts/terminus-font
+
+# Extract genkernel console font.
+gunzip -k /usr/share/consolefonts/ter-v16n.psf.gz
+
 # Option 1: Use genkernel(8) to configure and build the kernel.
 # emerge -avn sys-kernel/genkernel
 # cp /etc/genkernel.conf /etc/genkernel.conf.orig
@@ -246,6 +254,9 @@ General setup  --->
 
     Preemption Model (Preemptible Kernel (Low-Latency Desktop))  --->
     Symbol: PREEMPT
+
+    -*- Initial RAM filesystem and RAM disk (initramfs/initrd) support
+    Symbol: BLK_DEV_INITRD
 
     [*] Configure standard kernel features (expert users)  --->
     Symbol: EXPERT
@@ -309,6 +320,19 @@ File systems  --->
 
 Device Drivers  --->
 
+    NVME Support  --->
+
+        <*> NVM Express block device
+        Symbol: BLK_DEV_NVME
+
+        [*] NVMe multipath support
+        Symbol: NVME_MULTIPATH
+
+        [*] NVMe hardware monitoring
+        Symbol: NVME_HWMON
+
+        Disable everything else.
+
     Graphics support  --->
 
         Frame buffer Devices  --->
@@ -323,7 +347,7 @@ Device Drivers  --->
 
             Disable everything else.
 
-Library routines  --->
+Library routines  --- >
 
     [*] Select compiled-in fonts
     Symbol: FONTS
@@ -350,11 +374,16 @@ Symbol: CPU_MITIGATIONS
 ```
 
 ```sh
-# Option 2: Manually configure and build the kernel.
+# Option 2: Use genkernel(8) and existing config to configure and build the kernel.
+# curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
+# gzip -dc /proc/config.gz > /usr/src/linux/.config
+# genkernel --kernel-config=/usr/src/linux/.config kernel
+
+# Option 3: Manually configure and build the kernel.
 # curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
 # gzip -dc /proc/config.gz > /usr/src/linux/.config
 # cd /usr/src/linux
-# make clean mrproper distclean
+# make clean
 # make oldconfig
 # make menuconfig
 # make -j17
@@ -383,17 +412,32 @@ ln -s nvim /usr/bin/vi
 # loadkeys ru
 
 # Configure framebuffer console.
-tee /etc/vconsole.conf >/dev/null <<'EOF'
-KEYMAP=ru
-FONT=ter-v16n
-FONT_MAP=8859-15
-EOF
+# tee /etc/vconsole.conf >/dev/null <<'EOF'
+# #KEYMAP=ru
+# #FONT=ter-v16n
+# #FONT_MAP=8859-15
+# EOF
 
 # Enable filesystem services.
 systemctl enable zfs.target
 systemctl enable zfs-import-cache
 systemctl enable zfs-mount
 systemctl enable zfs-import.target
+
+# Add "nvme" to "modules" in bliss-initramfs settings.
+jq '.modules.files += [ "nvme" ]' \
+  /etc/bliss-initramfs/settings.json | sponge \
+  /etc/bliss-initramfs/settings.json
+
+# Generate kernel initarmfs.
+# bliss-initramfs -k 6.12.16-gentoo
+# mv initrd-6.12.16-gentoo /boot/
+
+# Generate ZFS host ID.
+# zgenhostid -f
+
+# Generate kernel initarmfs.
+# genkernel --kernel-config=/usr/src/linux/.config initramfs
 
 # Remount NVRAM variables (efivars) with read/write access.
 mount -o remount,rw /sys/firmware/efi/efivars
@@ -415,18 +459,10 @@ EOF
 tee /boot/loader/entries/linux.conf >/dev/null <<'EOF'
 title Linux
 linux /vmlinuz-6.12.16-gentoo
-initrd /amd-uc.img /initrd-6.12.16-gentoo
-options root=system/root ro acpi_enforce_resources=lax quiet
+initrd /amd-uc.img
+initrd /initramfs-6.12.16-gentoo.img
+options root=system/root ro spl_hostid=0 acpi_enforce_resources=lax quiet
 EOF
-
-# Add "nvme" to "modules" in bliss-initramfs settings.
-jq '.modules.files += [ "nvme" ]' \
-  /etc/bliss-initramfs/settings.json | sponge \
-  /etc/bliss-initramfs/settings.json
-
-# Generate kernel initarmfs.
-bliss-initramfs -k 6.12.16-gentoo
-mv initrd-6.12.16-gentoo /boot/
 
 # Configure virtual memory.
 mkdir -p /etc/sysctl.d
