@@ -36,7 +36,7 @@ sys-apps/moreutils -perl
 sys-auth/seatd builtin server
 sys-kernel/genkernel firmware systemd
 sys-kernel/installkernel systemd systemd-boot uki ukify
-sys-kernel/linux-firmware redistributable unknown-license
+sys-kernel/linux-firmware redistributable unknown-license -initramfs
 
 # Wireless
 net-wireless/wpa_supplicant ap fasteap tkip wep wps
