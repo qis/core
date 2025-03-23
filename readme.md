@@ -73,10 +73,14 @@ swapon /dev/nvme0n1p2
 # Load ZFS kernel module.
 modprobe zfs
 
-# Create root filesystem.
-# zpool destroy system
+# Import root filesystem to fix problems.
 # zpool import -R /mnt/gentoo system
-zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
+
+# Destroy root filesystem to install without genkernel.
+# zpool destroy system
+
+# Create root filesystem.
+# zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
 
 # Create system datasets.
 zfs create -o mountpoint=/ system/root
@@ -198,11 +202,10 @@ wget https://raw.githubusercontent.com/qis/core/master/package.use/core \
 wget https://raw.githubusercontent.com/qis/core/master/sets/core \
   -O /etc/portage/sets/core
 
-# Install curl.
-emerge net-misc/curl
+# Install curl and freetype without circular dependencies.
+USE="-harfbuzz" emerge -1 net-misc/curl media-libs/freetype
 
-# Install freetype and hafbuzz without circular dependencies.
-USE="-harfbuzz" emerge -1 media-libs/freetype
+# Install harfbuzz and rebuild freetype with harfbuzz support.
 emerge media-libs/harfbuzz && emerge media-libs/freetype
 
 # Verify that the @world set has no conflicts.
@@ -221,7 +224,7 @@ ls -lh /usr/src/linux
 ls -lh /boot/amd-uc.img
 
 # Install genkernel dependencies.
-emerge sys-apps/busybox media-fonts/terminus-font
+emerge sys-apps/busybox
 
 # Extract genkernel console font.
 gunzip -k /usr/share/consolefonts/ter-v16n.psf.gz
