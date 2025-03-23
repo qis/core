@@ -1,6 +1,6 @@
 # Bootloader
 sys-apps/busybox pam systemd
-sys-apps/systemd boot pam
+sys-apps/systemd boot pam ukify
 
 # Compression
 app-arch/p7zip rar
@@ -35,7 +35,8 @@ dev-libs/glib mime
 sys-apps/moreutils -perl
 sys-auth/seatd builtin server
 sys-kernel/genkernel firmware systemd
-sys-kernel/linux-firmware initramfs redistributable
+sys-kernel/installkernel systemd systemd-boot uki ukify
+sys-kernel/linux-firmware redistributable unknown-license
 
 # Wireless
 net-wireless/wpa_supplicant ap fasteap tkip wep wps

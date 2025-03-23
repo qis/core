@@ -18,7 +18,8 @@ sh download.sh gpg
 sh download.sh admin
 ```
 
-Boot "Admin CD" image.
+Boot "Admin CD" image. All steps are repeated once for **Stage 1** and once for **Stage 2** unless
+specified otherwise.
 
 ```sh
 # Change root password.
@@ -46,7 +47,7 @@ chronyd -q 'server ntp1.vniiftri.ru iburst'
 # List block devices.
 lsblk
 
-# Partition disk.
+# Stage 1: Partition disk.
 parted -a optimal /dev/nvme0n1
 ```
 
@@ -63,24 +64,23 @@ quit
 ```
 
 ```sh
-# Create boot filesystem.
+# Stage 1: Create boot filesystem.
 mkfs.fat -F32 /dev/nvme0n1p1
 
-# Enable swap filesystem.
+# Stage 1: Create swap filesystem.
 mkswap /dev/nvme0n1p2
+
+# Enable swap filesystem.
 swapon /dev/nvme0n1p2
 
 # Load ZFS kernel module.
 modprobe zfs
 
-# Import root filesystem to fix problems.
-# zpool import -R /mnt/gentoo system
-
-# Destroy root filesystem to install without genkernel.
+# Delete root filesystem.
 # zpool destroy system
 
 # Create root filesystem.
-# zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
+zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
 
 # Create system datasets.
 zfs create -o mountpoint=/ system/root
@@ -101,7 +101,6 @@ curl -L https://raw.githubusercontent.com/qis/core/master/download.sh -o downloa
 sh download.sh gpg
 sh download.sh stage
 tar xpf stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
-rm -f download.sh stage.tar.xz stage.tar.xz.asc
 
 # Redirect /var/tmp.
 rmdir /mnt/gentoo/var/tmp
@@ -223,17 +222,10 @@ ls -lh /usr/src/linux
 # Verify AMD microcode image.
 ls -lh /boot/amd-uc.img
 
-# Install genkernel dependencies.
-emerge sys-apps/busybox
-
-# Extract genkernel console font.
-gunzip -k /usr/share/consolefonts/ter-v16n.psf.gz
-
-# Option 1: Use genkernel(8) to configure and build the kernel.
-# emerge -avn sys-kernel/genkernel
-# cp /etc/genkernel.conf /etc/genkernel.conf.orig
-# curl -L https://raw.githubusercontent.com/qis/core/master/genkernel.conf -o /etc/genkernel.conf
-# genkernel kernel
+# Stage 1: Use genkernel(8) to configure and build the kernel without an existing config.
+curl -L https://raw.githubusercontent.com/qis/core/master/genkernel.conf -o /etc/genkernel.conf
+emerge -avn sys-apps/busybox sys-kernel/genkernel
+genkernel kernel
 ```
 
 ```
@@ -377,70 +369,35 @@ Symbol: CPU_MITIGATIONS
 ```
 
 ```sh
-# Option 2: Use genkernel(8) and existing config to configure and build the kernel.
+# Stage 2: Move kernel files to root directory.
+mkdir /root/kernel
+mv /boot/*-6.12.16-gentoo* /root/kernel/
+
+# Stage 2: Manually install the kernel.
 # curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
-# gzip -dc /proc/config.gz > /usr/src/linux/.config
-# genkernel --kernel-config=/usr/src/linux/.config kernel
+cat /root/kernel/genkernel-6.12.16-gentoo > /usr/src/linux/.config
+cd /usr/src/linux
+make clean
+make oldconfig
+make menuconfig
+make -j17
+make modules_prepare
+make modules_install
+make install
 
-# Option 3: Manually configure and build the kernel.
-# curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
-# gzip -dc /proc/config.gz > /usr/src/linux/.config
-# cd /usr/src/linux
-# make clean
-# make oldconfig
-# make menuconfig
-# make -j17
-# make modules_prepare
-# make modules_install
-# make install
+# Stage 2: Manually install kernel.
+emerge -av sys-apps/systemd sys-kernel/installkernel
 
-# Rebuild @world set.
-emerge -ave @world
-emerge -ac
-
-# Install @core set.
-emerge -avn @core
-emerge -ac
-
-# Create nvim symlinks.
-ln -s nvim /usr/bin/vim
-ln -s nvim /usr/bin/vi
-
-# Test framebuffer console.
-# cat /usr/share/consolefonts/README.psfu
-# cat /usr/share/consolefonts/README.terminus
-# ls /usr/share/consolefonts/ | grep ter-v16n
-# ls /usr/share/unimaps/ | grep 8859-15
-# setfont ter-v16n -m 8859-15
-# loadkeys ru
-
-# Configure framebuffer console.
-# tee /etc/vconsole.conf >/dev/null <<'EOF'
-# #KEYMAP=ru
-# #FONT=ter-v16n
-# #FONT_MAP=8859-15
-# EOF
-
-# Enable filesystem services.
-systemctl enable zfs.target
-systemctl enable zfs-import-cache
-systemctl enable zfs-mount
-systemctl enable zfs-import.target
-
-# Add "nvme" to "modules" in bliss-initramfs settings.
-jq '.modules.files += [ "nvme" ]' \
-  /etc/bliss-initramfs/settings.json | sponge \
-  /etc/bliss-initramfs/settings.json
+tee /etc/kernel/install.conf >/dev/null <<'EOF'
+layout=bls
+initrd_generator=none
+uki_generator=ukify
+EOF
 
 # Generate kernel initarmfs.
-# bliss-initramfs -k 6.12.16-gentoo
-# mv initrd-6.12.16-gentoo /boot/
-
-# Generate ZFS host ID.
-# zgenhostid -f
-
-# Generate kernel initarmfs.
-# genkernel --kernel-config=/usr/src/linux/.config initramfs
+emerge -av sys-apps/busybox sys-fs/zfs sys-kernel/bliss-initramfs
+bliss-initramfs -k 6.12.16-gentoo
+mv initrd-6.12.16-gentoo /boot/gentoo/6.12.16-gentoo/initrd
 
 # Remount NVRAM variables (efivars) with read/write access.
 mount -o remount,rw /sys/firmware/efi/efivars
@@ -461,15 +418,32 @@ EOF
 
 tee /boot/loader/entries/linux.conf >/dev/null <<'EOF'
 title Linux
-linux /vmlinuz-6.12.16-gentoo
-initrd /amd-uc.img
-initrd /initramfs-6.12.16-gentoo.img
-options root=system/root ro spl_hostid=0 acpi_enforce_resources=lax quiet
+linux /gentoo/6.12.16-gentoo/linux
+initrd /gentoo/6.12.16-gentoo/microcode-amd
+initrd /gentoo/6.12.16-gentoo/initrd
+options root=system/root ro acpi_enforce_resources=lax quiet
 EOF
 
+# Rebuild @world set.
+emerge -ave @world
+emerge -ac
+
+# Install @core set.
+emerge -avn @core
+emerge -ac
+
+# Create nvim symlinks.
+ln -s nvim /usr/bin/vim
+ln -s nvim /usr/bin/vi
+
+# Enable filesystem services.
+systemctl enable zfs.target
+systemctl enable zfs-import-cache
+systemctl enable zfs-mount
+systemctl enable zfs-import.target
+
 # Configure virtual memory.
-mkdir -p /etc/sysctl.d
-tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
+mkdir -p /etc/sysctl.d && tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
 vm.max_map_count=2147483642
 vm.swappiness=1
 EOF
@@ -503,7 +477,42 @@ curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/bash/b
 
 # Configure tmux.
 curl -L https://raw.githubusercontent.com/qis/core/master/tmux.conf -o /etc/tmux.conf
+```
 
+**Option 1**: Repeat the last step without `genkernel(8)`.
+
+```sh
+# Link resolv.conf to systemd.
+ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+
+# Set root password.
+passwd
+
+# Exit chroot environment.
+exit
+
+# Unmount filesystems.
+umount -l /mnt/gentoo/dev{/shm,/pts,}
+umount -R /mnt/gentoo
+
+# Halt system and remove installation media.
+halt -p
+
+# Boot system and back up working kernel config.
+mount /boot
+modprobe configs
+gzip -dc /proc/config.gz > /boot/genkernel-6.12.16-gentoo
+
+# Disable systemd-boot entries.
+mv /boot/loader/entries/linux.conf /boot/genkernel-6.12.16-gentoo.conf
+
+# Halt system and boot from installation media to repeat the process withoout genkernel(8).
+halt -p
+```
+
+**Option 2**: Finish installation.
+
+```sh
 # Configure seatd.
 systemctl enable seatd
 
@@ -608,15 +617,6 @@ HandleLidSwitchExternalPower=ignore
 HandleLidSwitchDocked=ignore
 EOF
 
-# Configure pulseaudio.
-emerge -avn media-sound/pulseaudio media-sound/sox
-systemctl --global enable pulseaudio pulseaudio.socket
-
-tee -a /etc/pulse/daemon.conf >/dev/null <<'EOF'
-default-sample-rate = 44100
-alternate-sample-rate = 48000
-EOF
-
 # Configure python.
 pip config set global.target ~/.pip
 
@@ -653,6 +653,15 @@ EOF
 env-update
 source /etc/profile
 export PS1="(chroot) ${PS1}"
+
+# Configure pulseaudio.
+emerge -avn media-sound/pulseaudio media-sound/sox
+systemctl --global enable pulseaudio pulseaudio.socket
+
+tee -a /etc/pulse/daemon.conf >/dev/null <<'EOF'
+default-sample-rate = 44100
+alternate-sample-rate = 48000
+EOF
 
 # Install multimedia utilities.
 emerge -avn media-sound/{ncpamixer,pulseaudio-ctl}

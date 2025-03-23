@@ -2,6 +2,7 @@
 sys-apps/busybox
 sys-apps/systemd
 sys-kernel/bliss-initramfs
+sys-kernel/installkernel
 
 # Compression
 app-arch/brotli
