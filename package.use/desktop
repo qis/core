@@ -9,8 +9,7 @@ media-libs/opencv contrib contribdnn
 media-libs/vulkan-loader layers
 x11-libs/libxcb xkb
 
-# Sound
-media-libs/libsndfile minimal
+# Audio
 media-sound/sox amr ao ladspa mad magic oss png sndfile sndio twolame wavpack
 
 # Graphics

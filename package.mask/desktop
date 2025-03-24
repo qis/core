@@ -1,7 +1,3 @@
-# Sound
-media-sound/pulseaudio
-media-sound/pulseaudio-daemon
-
 # Toolkits
 dev-python/pyqt5
 dev-qt/qtwebengine

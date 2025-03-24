@@ -35,3 +35,6 @@ sys-kernel/linux-firmware initramfs redistributable unknown-license
 
 # Wireless
 net-wireless/wpa_supplicant ap fasteap tkip wep wps
+
+# Audio
+media-libs/libsndfile minimal

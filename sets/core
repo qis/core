@@ -76,3 +76,7 @@ sys-apps/pv
 sys-process/btop
 sys-process/htop
 sys-process/time
+
+# Audio
+media-libs/alsa-lib
+media-sound/alsa-utils

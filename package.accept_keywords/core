@@ -1,7 +1,3 @@
-# Audio
-media-sound/ncpamixer ~amd64
-media-sound/pulseaudio-ctl ~amd64
-
 # Editor
 app-editors/neovim ~amd64
 dev-libs/tree-sitter ~amd64

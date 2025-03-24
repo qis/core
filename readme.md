@@ -146,8 +146,7 @@ tee /etc/fstab >/dev/null <<'EOF'
 EOF
 
 # Create make.conf.
-wget https://raw.githubusercontent.com/qis/core/master/make.conf \
-  -O /etc/portage/make.conf
+wget https://raw.githubusercontent.com/qis/core/master/make.conf -O /etc/portage/make.conf
 
 # Synchronize portage.
 cp /usr/share/portage/config/repos.conf /etc/portage/repos.conf
@@ -389,8 +388,7 @@ EOF
 
 # Create make.conf.
 # Add `vmware` to the `VIDEO_CARDS` list for VMWare guest.
-wget https://raw.githubusercontent.com/qis/core/master/make.conf \
-  -O /etc/portage/make.conf
+wget https://raw.githubusercontent.com/qis/core/master/make.conf -O /etc/portage/make.conf
 
 # Synchronize portage.
 cp /usr/share/portage/config/repos.conf /etc/portage/repos.conf
@@ -819,10 +817,13 @@ Install and configure desktop packages.
 # Log in as root.
 sudo su -
 
-# Mask unwanted packages.
 tee /etc/portage/package.mask/desktop >/dev/null <<'EOF'
 # Sound
 media-sound/pulseaudio-daemon
+media-libs/libpulse
+media-sound/jack2
+media-sound/pulseaudio
+media-video/pipewire
 
 # Toolkits
 dev-python/pyqt5
@@ -833,14 +834,62 @@ EOF
 tee /etc/portage/package.use/desktop >/dev/null <<'EOF'
 # Sound
 media-libs/libsndfile minimal
-media-video/pipewire sound-server dbus echo-cancel jack-sdk flatpak extra
-media-video/wireplumber lua_single_target_lua5-4
 EOF
 
-emerge -avn media-video/pipewire
+emerge -avn media-libs/alsa-lib media-sound/alsa-utils
+
+aplay -l
+aplay -D hw:0,0 /dev/zero --dump-hw-params
+
+mkdir -p /etc/pipewire/pipewire.conf.d
+
+tee /etc/pipewire/pipewire.conf.d/rates.conf >/dev/null <<'EOF'
+context.properties = {
+  default.clock.rate = 48000
+  default.clock.allowed-rates = [ 48000 44100 ]
+  default.clock.quantum = 2048
+  default.clock.min-quantum = 1024
+  default.clock.max-quantum = 4096
+  default.clock.quantum-floor = 1024
+  default.clock.quantum-limit = 4096
+}
+EOF
 ```
 
+Configure installed packages as user.
 
+```sh
+# Configure pipewire(1).
+systemctl --user enable --now pipewire pipewire-pulse wireplumber
+
+EDITOR=vim systemctl --user edit pipewire.service
+# [Service]
+# Nice=-20
+# CPUSchedulingPolicy=rr
+# CPUSchedulingPriority=20
+
+systemctl --user daemon-reload
+systemctl --user restart pipewire pipewire-pulse wireplumber
+
+pw-dump
+wpctl status
+wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+
+```
+
+Test installed packages as user.
+
+```sh
+wget https://raw.githubusercontent.com/qis/core/master/test.wav
+
+# Test alsa.
+sudo aplay test.wav
+
+# Test pipewire.
+pw-play test.wav
+
+# Test pulseaudio.
+paplay test.wav
+```
 
 
 
