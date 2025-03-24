@@ -2,7 +2,7 @@ gui-apps/wofi ~amd64
 gui-apps/waybar ~amd64
 gui-wm/hyprland ~amd64
 gui-apps/swaylock ~amd64
-app-misc/brightnessctl ~amd64
+app-misc/ddccontrol ~amd64
 media-libs/libdisplay-info ~amd64
 dev-libs/hyprland-protocols ~amd64
 dev-libs/libliftoff ~amd64

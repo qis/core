@@ -10,6 +10,7 @@ VGA: 2560x1600
 RAM: 32 GiB
 ```
 
+## System
 Download "Admin CD" from <https://www.gentoo.org/downloads/> and create a memory stick.
 
 ```sh
@@ -18,8 +19,7 @@ sh download.sh gpg
 sh download.sh admin
 ```
 
-Boot "Admin CD" image. All steps are repeated once for **Stage 1** and once for **Stage 2** unless
-specified otherwise.
+Boot "Admin CD" image.
 
 ```sh
 # Change root password.
@@ -47,7 +47,7 @@ chronyd -q 'server ntp1.vniiftri.ru iburst'
 # List block devices.
 lsblk
 
-# Stage 1: Partition disk.
+# Partition disk.
 parted -a optimal /dev/nvme0n1
 ```
 
@@ -64,10 +64,10 @@ quit
 ```
 
 ```sh
-# Stage 1: Create boot filesystem.
+# Create boot filesystem.
 mkfs.fat -F32 /dev/nvme0n1p1
 
-# Stage 1: Create swap filesystem.
+# Create swap filesystem.
 mkswap /dev/nvme0n1p2
 
 # Enable swap filesystem.
@@ -75,9 +75,6 @@ swapon /dev/nvme0n1p2
 
 # Load ZFS kernel module.
 modprobe zfs
-
-# Delete root filesystem.
-# zpool destroy system
 
 # Create root filesystem.
 zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
@@ -96,11 +93,10 @@ mkdir /mnt/gentoo/boot
 mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
 
 # Download and extract stage tarball.
-cd /tmp
-curl -L https://raw.githubusercontent.com/qis/core/master/download.sh -o download.sh
-sh download.sh gpg
-sh download.sh stage
-tar xpf stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
+curl -L https://raw.githubusercontent.com/qis/core/master/download.sh -o /tmp/download.sh
+env --chdir=/tmp sh download.sh gpg
+env --chdir=/tmp sh download.sh stage
+tar xpf /tmp/stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
 
 # Redirect /var/tmp.
 rmdir /mnt/gentoo/var/tmp
@@ -150,36 +146,8 @@ tee /etc/fstab >/dev/null <<'EOF'
 EOF
 
 # Create make.conf.
-tee /etc/portage/make.conf >/dev/null <<'EOF'
-# Compiler
-CFLAGS="-march=znver3 -O2 -pipe"
-CXXFLAGS="${CFLAGS}"
-FCFLAGS="${CFLAGS}"
-FFLAGS="${CFLAGS}"
-MAKEOPTS="-j17"
-
-# Locale
-LC_MESSAGES=C
-LINGUAS="en en_US"
-L10N="en en-US"
-
-# Portage
-FEATURES="buildpkg"
-ACCEPT_LICENSE="* -@EULA"
-CONFIG_PROTECT="/var/bind"
-EMERGE_DEFAULT_OPTS="--with-bdeps=y --keep-going=y --quiet-build=y"
-GENTOO_MIRRORS="https://mirror.yandex.ru/gentoo-distfiles/"
-VIDEO_CARDS="fbdev amdgpu"
-INPUT_DEVICES="libinput synaptics wacom"
-LUA_SINGLE_TARGET="luajit"
-SANE_BACKENDS="net pixma"
-
-# System
-USE="alsa bash-completion caps dbus encode icu idn -nls opencl policykit -sendmail udev unicode"
-USE="${USE} aac flac id3tag mad mp3 mp4 mpeg ogg opus pulseaudio sound theora vorbis x264 x265 xml"
-USE="${USE} -X -gui -gnome -gtk -cairo -pango -kde -kwallet -plasma -qt5 -qml -sdl -xcb"
-USE="${USE} -branding -doc -examples -test -handbook -telemetry"
-EOF
+wget https://raw.githubusercontent.com/qis/core/master/make.conf \
+  -O /etc/portage/make.conf
 
 # Synchronize portage.
 cp /usr/share/portage/config/repos.conf /etc/portage/repos.conf
@@ -188,44 +156,18 @@ emerge --sync
 # Mark portage news as read.
 eselect news read
 
-# Create sets directory.
-mkdir /etc/portage/sets
-
-# Create @core set.
-wget https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/core \
-  -O /etc/portage/package.accept_keywords/core
-wget https://raw.githubusercontent.com/qis/core/master/package.mask/core \
-  -O /etc/portage/package.mask/core
-wget https://raw.githubusercontent.com/qis/core/master/package.use/core \
-  -O /etc/portage/package.use/core
-wget https://raw.githubusercontent.com/qis/core/master/sets/core \
-  -O /etc/portage/sets/core
-
-# Install curl and freetype without circular dependencies.
-USE="-harfbuzz" emerge -1 net-misc/curl media-libs/freetype
-
-# Install harfbuzz and rebuild freetype with harfbuzz support.
-emerge media-libs/harfbuzz && emerge media-libs/freetype
-
-# Verify that the @world set has no conflicts.
-emerge -pve @world
-
-# Install kernel sources.
+# Select kernel version.
 emerge -s '^sys-kernel/gentoo-sources$'
 echo "=sys-kernel/gentoo-sources-6.12.16 ~amd64" > /etc/portage/package.accept_keywords/kernel
 echo "=sys-kernel/gentoo-sources-6.12.16 symlink" > /etc/portage/package.use/kernel
-emerge -avnuU =sys-kernel/gentoo-sources-6.12.16 sys-kernel/linux-firmware
 
-# Verify kernel sources symlink.
-ls -lh /usr/src/linux
+# Install kernel sources and genkernel.
+USE="boot firmware redistributable systemd systemd-boot uki ukify -initramfs -policykit" \
+emerge -avnuU =sys-kernel/gentoo-sources-6.12.16 sys-kernel/genkernel
 
-# Verify AMD microcode image.
-ls -lh /boot/amd-uc.img
-
-# Stage 1: Use genkernel(8) to configure and build the kernel without an existing config.
-curl -L https://raw.githubusercontent.com/qis/core/master/genkernel.conf -o /etc/genkernel.conf
-emerge -avn sys-apps/busybox sys-kernel/genkernel
-genkernel kernel
+# Use genkernel(8) to configure and build a kernel image.
+wget https://raw.githubusercontent.com/qis/core/master/genkernel.conf -O /etc/genkernel.conf
+genkernel --no-cleanup --no-install bzImage
 ```
 
 ```
@@ -249,9 +191,6 @@ General setup  --->
 
     Preemption Model (Preemptible Kernel (Low-Latency Desktop))  --->
     Symbol: PREEMPT
-
-    -*- Initial RAM filesystem and RAM disk (initramfs/initrd) support
-    Symbol: BLK_DEV_INITRD
 
     [*] Configure standard kernel features (expert users)  --->
     Symbol: EXPERT
@@ -342,7 +281,7 @@ Device Drivers  --->
 
             Disable everything else.
 
-Library routines  --- >
+Library routines  --->
 
     [*] Select compiled-in fonts
     Symbol: FONTS
@@ -369,13 +308,121 @@ Symbol: CPU_MITIGATIONS
 ```
 
 ```sh
-# Stage 2: Move kernel files to root directory.
-mkdir /root/kernel
-mv /boot/*-6.12.16-gentoo* /root/kernel/
+# Save kernel config.
+cat /usr/src/linux/.config > /boot/config
 
-# Stage 2: Manually install the kernel.
+# Exit chroot environment.
+exit
+
+# Unmount filesystems.
+umount -l /mnt/gentoo/dev{/shm,/pts,}
+umount -R /mnt/gentoo
+
+# Delete root filesystem.
+zpool destroy system
+
+# Create root filesystem.
+zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
+
+# Create system datasets.
+zfs create -o mountpoint=/ system/root
+zfs create -o mountpoint=/home system/home
+zfs create -o mountpoint=/home/qis -o encryption=aes-256-gcm -o keyformat=passphrase -o keylocation=prompt system/home/qis
+zfs create -o mountpoint=/tmp -o compression=off -o sync=disabled system/tmp
+zfs create -o mountpoint=/opt -o compression=off system/opt
+zfs create -o mountpoint=/var/lib/libvirt/images system/images
+chmod 1777 /mnt/gentoo/tmp
+
+# Mount boot filesystem.
+mkdir /mnt/gentoo/boot
+mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
+
+# Download and extract stage tarball.
+tar xpf /tmp/stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
+
+# Redirect /var/tmp.
+rmdir /mnt/gentoo/var/tmp
+ln -s ../tmp /mnt/gentoo/var/tmp
+
+# Redirect /usr/opt.
+ln -s ../opt /mnt/gentoo/usr/opt
+
+# Copy zpool cache.
+mkdir /mnt/gentoo/etc/zfs
+cp -L /etc/zfs/zpool.cache /mnt/gentoo/etc/zfs/
+
+# Mount virtual filesystems.
+mount --types proc /proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys
+mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev
+mount --make-rslave /mnt/gentoo/dev
+mount --bind /run /mnt/gentoo/run
+mount --make-slave /mnt/gentoo/run
+
+# Copy network settings.
+cp -L /etc/resolv.conf /mnt/gentoo/etc/
+
+# Configure CPU flags.
+echo "*/* `cpuid2cpuflags`" > /mnt/gentoo/etc/portage/package.use/flags
+
+# Chroot into system.
+chroot /mnt/gentoo /bin/bash
+
+# Generate locale.
+tee /etc/locale.gen >/dev/null <<'EOF'
+en_US.UTF-8 UTF-8
+ru_RU.UTF-8 UTF-8
+EOF
+
+locale-gen
+
+# Load profile.
+source /etc/profile
+export PS1="(chroot) ${PS1}"
+
+# Configure mouting points.
+tee /etc/fstab >/dev/null <<'EOF'
+/dev/nvme0n1p1 /boot vfat defaults,noatime,noauto 0 2
+/dev/nvme0n1p2 none  swap sw                      0 0
+EOF
+
+# Create make.conf.
+# Add `vmware` to the `VIDEO_CARDS` list for VMWare guest.
+wget https://raw.githubusercontent.com/qis/core/master/make.conf \
+  -O /etc/portage/make.conf
+
+# Synchronize portage.
+cp /usr/share/portage/config/repos.conf /etc/portage/repos.conf
+emerge --sync
+
+# Mark portage news as read.
+eselect news read
+
+# Create sets directory.
+mkdir /etc/portage/sets
+
+# Create @core set.
+wget https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/core \
+  -O /etc/portage/package.accept_keywords/core
+wget https://raw.githubusercontent.com/qis/core/master/package.mask/core \
+  -O /etc/portage/package.mask/core
+wget https://raw.githubusercontent.com/qis/core/master/package.use/core \
+  -O /etc/portage/package.use/core
+wget https://raw.githubusercontent.com/qis/core/master/sets/core \
+  -O /etc/portage/sets/core
+
+# Select kernel version.
+echo "=sys-kernel/gentoo-sources-6.12.16 ~amd64" > /etc/portage/package.accept_keywords/kernel
+echo "=sys-kernel/gentoo-sources-6.12.16 symlink" > /etc/portage/package.use/kernel
+
+# Install kernel sources.
+emerge -avnuU =sys-kernel/gentoo-sources-6.12.16 sys-kernel/linux-firmware
+
+# Build kernel.
 # curl -L https://raw.githubusercontent.com/qis/core/master/.config -o /usr/src/linux/.config
-cat /root/kernel/genkernel-6.12.16-gentoo > /usr/src/linux/.config
+# gzip -dc /proc/config.gz > /usr/src/linux/.config
+cat /boot/config > /usr/src/linux/.config
 cd /usr/src/linux
 make clean
 make oldconfig
@@ -383,21 +430,20 @@ make menuconfig
 make -j17
 make modules_prepare
 make modules_install
-make install
 
-# Stage 2: Manually install kernel.
-emerge -av sys-apps/systemd sys-kernel/installkernel
+# Install curl and freetype without circular dependencies.
+USE="-harfbuzz" emerge -1 net-misc/curl media-libs/freetype
 
-tee /etc/kernel/install.conf >/dev/null <<'EOF'
-layout=bls
-initrd_generator=none
-uki_generator=ukify
-EOF
+# Install harfbuzz and rebuild freetype with harfbuzz support.
+emerge media-libs/harfbuzz && emerge media-libs/freetype
 
-# Generate kernel initarmfs.
-emerge -av sys-apps/busybox sys-fs/zfs sys-kernel/bliss-initramfs
-bliss-initramfs -k 6.12.16-gentoo
-mv initrd-6.12.16-gentoo /boot/gentoo/6.12.16-gentoo/initrd
+# Rebuild @world set.
+emerge -ave @world
+emerge -ac
+
+# Install @core set.
+emerge -avn @core
+emerge -ac
 
 # Remount NVRAM variables (efivars) with read/write access.
 mount -o remount,rw /sys/firmware/efi/efivars
@@ -405,7 +451,7 @@ mount -o remount,rw /sys/firmware/efi/efivars
 # Install systemd-boot to ESP.
 bootctl install
 
-# Configure systemd-boot.
+# Configure systemd-boot loader.
 tee /boot/loader/loader.conf >/dev/null <<'EOF'
 timeout 3
 default @saved
@@ -416,6 +462,29 @@ editor false
 beep false
 EOF
 
+# Configure installkernel(8).
+echo gentoo > /etc/kernel/entry-token
+
+tee /etc/kernel/install.conf >/dev/null <<'EOF'
+layout=bls
+initrd_generator=none
+uki_generator=ukify
+EOF
+
+# Install kernel.
+cd /usr/src/linux
+make install
+
+# Install kernel initarmfs.
+bliss-initramfs -k 6.12.16-gentoo
+mv initrd-6.12.16-gentoo /boot/gentoo/6.12.16-gentoo/initrd
+
+# Copy kernel config.
+cat /usr/src/linux/.config > /boot/gentoo/6.12.16-gentoo/config
+
+# Configure systemd-boot loader entry.
+rm -f /boot/loader/entries/gentoo-6.12.16-gentoo.conf
+
 tee /boot/loader/entries/linux.conf >/dev/null <<'EOF'
 title Linux
 linux /gentoo/6.12.16-gentoo/linux
@@ -424,47 +493,19 @@ initrd /gentoo/6.12.16-gentoo/initrd
 options root=system/root ro acpi_enforce_resources=lax quiet
 EOF
 
-# Rebuild @world set.
-emerge -ave @world
-emerge -ac
-
-# Install @core set.
-emerge -avn @core
-emerge -ac
-
-# Create nvim symlinks.
-ln -s nvim /usr/bin/vim
-ln -s nvim /usr/bin/vi
-
 # Enable filesystem services.
 systemctl enable zfs.target
 systemctl enable zfs-import-cache
 systemctl enable zfs-mount
 systemctl enable zfs-import.target
 
-# Configure virtual memory.
-mkdir -p /etc/sysctl.d && tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
-vm.max_map_count=2147483642
-vm.swappiness=1
-EOF
+# Install tools for VMWare guest.
+# emerge -avn app-emulation/open-vm-tools
+# systemctl enable vmtoolsd
 
-# Configure git.
-git config --global core.eol lf
-git config --global core.autocrlf false
-git config --global core.filemode false
-git config --global pull.rebase false
-
-# Configure nvim.
-git clone --recursive https://github.com/qis/vim /etc/xdg/nvim
-
-# Build nvim telescope fzf plugin.
-cd /etc/xdg/nvim/pack/plugins/opt/telescope-fzf-native
-cmake -DCMAKE_BUILD_TYPE=Release -B build
-cmake --build build
-
-# Create nvim config symlink.
-mkdir -p /root/.config
-ln -s ../../etc/xdg/nvim /root/.config/nvim
+# Create editor symlinks.
+ln -s nvim /usr/bin/vim
+ln -s nvim /usr/bin/vi
 
 # Configure editor.
 echo "EDITOR=/usr/bin/vim" > /etc/env.d/01editor
@@ -472,47 +513,12 @@ echo "EDITOR=/usr/bin/vim" > /etc/env.d/01editor
 # Configure time zone.
 ln -snf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 
-# Configure shell.
-curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/bash/bashrc.d/core
+# Configure virtual memory.
+mkdir -p /etc/sysctl.d && tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
+vm.max_map_count=2147483642
+vm.swappiness=1
+EOF
 
-# Configure tmux.
-curl -L https://raw.githubusercontent.com/qis/core/master/tmux.conf -o /etc/tmux.conf
-```
-
-**Option 1**: Repeat the last step without `genkernel(8)`.
-
-```sh
-# Link resolv.conf to systemd.
-ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-
-# Set root password.
-passwd
-
-# Exit chroot environment.
-exit
-
-# Unmount filesystems.
-umount -l /mnt/gentoo/dev{/shm,/pts,}
-umount -R /mnt/gentoo
-
-# Halt system and remove installation media.
-halt -p
-
-# Boot system and back up working kernel config.
-mount /boot
-modprobe configs
-gzip -dc /proc/config.gz > /boot/genkernel-6.12.16-gentoo
-
-# Disable systemd-boot entries.
-mv /boot/loader/entries/linux.conf /boot/genkernel-6.12.16-gentoo.conf
-
-# Halt system and boot from installation media to repeat the process withoout genkernel(8).
-halt -p
-```
-
-**Option 2**: Finish installation.
-
-```sh
 # Configure seatd.
 systemctl enable seatd
 
@@ -617,6 +623,12 @@ HandleLidSwitchExternalPower=ignore
 HandleLidSwitchDocked=ignore
 EOF
 
+# Configure shell.
+curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/bash/bashrc.d/core
+
+# Configure tmux.
+curl -L https://raw.githubusercontent.com/qis/core/master/tmux.conf -o /etc/tmux.conf
+
 # Configure python.
 pip config set global.target ~/.pip
 
@@ -630,42 +642,11 @@ tee /etc/profile.d/path.sh >/dev/null <<'EOF'
 export PATH="${HOME}/.local/bin:${PATH}"
 EOF
 
-# Configure desktop runtime directory.
-tee /etc/profile.d/xdg.sh >/dev/null <<'EOF'
-XDG_RUNTIME_DIR=/run/user/${UID}
-EOF
-
-# Configure desktop user directories.
-emerge -avn x11-misc/xdg-user-dirs
-
-tee /etc/xdg/user-dirs.defaults >/dev/null <<'EOF'
-DOWNLOAD=downloads
-DOCUMENTS=documents
-DESKTOP=.local/desktop
-PUBLICSHARE=.local/public
-TEMPLATES=.local/templates
-PICTURES=.local/pictures
-VIDEOS=.local/videos
-MUSIC=.local/music
-EOF
-
-# Update environment.
-env-update
-source /etc/profile
-export PS1="(chroot) ${PS1}"
-
-# Configure pulseaudio.
-emerge -avn media-sound/pulseaudio media-sound/sox
-systemctl --global enable pulseaudio pulseaudio.socket
-
-tee -a /etc/pulse/daemon.conf >/dev/null <<'EOF'
-default-sample-rate = 44100
-alternate-sample-rate = 48000
-EOF
-
-# Install multimedia utilities.
-emerge -avn media-sound/{ncpamixer,pulseaudio-ctl}
-ln -s ncpamixer /usr/bin/mixer
+# Configure git.
+git config --global core.eol lf
+git config --global core.autocrlf false
+git config --global core.filemode false
+git config --global pull.rebase false
 
 # Add user.
 useradd -m -G users,seat,wheel,audio,input,usb,video -s /bin/bash qis
@@ -718,6 +699,25 @@ echo "auth            optional        pam_exec.so expose_authtok /sbin/mount-zfs
 zfs set canmount=noauto system/home/qis
 zfs set core.encrypt.automount:user=qis system/home/qis
 
+# Configure desktop runtime directory.
+tee /etc/profile.d/xdg.sh >/dev/null <<'EOF'
+XDG_RUNTIME_DIR=/run/user/${UID}
+EOF
+
+# Configure desktop user directories.
+emerge -avn x11-misc/xdg-user-dirs
+
+tee /etc/xdg/user-dirs.defaults >/dev/null <<'EOF'
+DOWNLOAD=downloads
+DOCUMENTS=documents
+DESKTOP=.local/desktop
+PUBLICSHARE=.local/public
+TEMPLATES=.local/templates
+PICTURES=.local/pictures
+VIDEOS=.local/videos
+MUSIC=.local/music
+EOF
+
 # Link resolv.conf to systemd.
 ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 
@@ -726,6 +726,224 @@ ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 # Press 'n' to skip patch.
 # Press 'z' to drop patch.
 dispatch-conf
+
+# Set root password.
+passwd
+
+# Exit chroot environment.
+exit
+
+# Unmount filesystems.
+umount -l /mnt/gentoo/dev{/shm,/pts,}
+umount -R /mnt/gentoo
+
+# Halt system and remove installation media.
+halt -p
+```
+
+Configure system.
+
+```sh
+# Install SSH config.
+scp -r .ssh core:
+
+# Log in as user.
+ssh core
+
+# Configure ssh.
+chmod 0755 .ssh
+chmod 0644 .ssh/*
+chmod 0600 .ssh/id_rsa
+cp .ssh/id_rsa.pub .ssh/authorized_keys
+rm -f .ssh/.known_hosts* .ssh/known_hosts
+
+# Log in as root.
+sudo su -
+
+# Set hostname.
+hostnamectl hostname core
+
+# Configure locale.
+localectl list-locales
+localectl set-locale LANG=en_US.UTF-8
+localectl set-locale LC_TIME=C.UTF-8
+localectl set-locale LC_CTYPE=C.UTF-8
+localectl set-locale LC_COLLATE=C.UTF-8
+localectl set-locale LC_NUMERIC=C.UTF-8
+localectl set-locale LC_MESSAGES=C.UTF-8
+localectl set-locale LC_PAPER=ru_RU.UTF-8
+localectl set-locale LC_NAME=ru_RU.UTF-8
+localectl set-locale LC_ADDRESS=ru_RU.UTF-8
+localectl set-locale LC_TELEPHONE=ru_RU.UTF-8
+localectl set-locale LC_MONETARY=ru_RU.UTF-8
+localectl set-locale LC_MEASUREMENT=ru_RU.UTF-8
+localectl set-locale LC_IDENTIFICATION=ru_RU.UTF-8
+
+# Update environment.
+env-update
+source /etc/profile
+
+# Configure systemd.
+systemd-firstboot --prompt --setup-machine-id
+
+# Configure systemd services.
+systemctl preset-all --preset-mode=enable-only
+
+# Configure time synchronization.
+mkdir -p /etc/systemd/timesyncd.conf.d
+
+tee /etc/systemd/timesyncd.conf.d/vniiftri.conf >/dev/null <<'EOF'
+[Time]
+NTP=ntp1.vniiftri.ru
+FallbackNTP=ntp2.vniiftri.ru ntp3.vniiftri.ru ntp4.vniiftri.ru ntp5.vniiftri.ru
+EOF
+
+systemd-analyze cat-config systemd/timesyncd.conf
+systemctl enable systemd-timesyncd
+
+# Log out as root.
+exit
+
+# Reboot system.
+sudo reboot
+```
+
+Used disk space:
+* `/dev/nvme0n1p1` 30M
+* `/dev/nvme0n1p3` 10G
+
+## Desktop
+Install and configure desktop packages.
+
+```sh
+# Log in as root.
+sudo su -
+
+# Mask unwanted packages.
+tee /etc/portage/package.mask/desktop >/dev/null <<'EOF'
+# Sound
+media-sound/pulseaudio-daemon
+
+# Toolkits
+dev-python/pyqt5
+dev-qt/qtwebengine
+gui-libs/gtk
+EOF
+
+tee /etc/portage/package.use/desktop >/dev/null <<'EOF'
+# Sound
+media-libs/libsndfile minimal
+media-video/pipewire sound-server dbus echo-cancel jack-sdk flatpak extra
+media-video/wireplumber lua_single_target_lua5-4
+EOF
+
+emerge -avn media-video/pipewire
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```sh
+# Configure nvim.
+git clone --recursive https://github.com/qis/vim /etc/xdg/nvim
+
+# Build nvim telescope fzf plugin.
+cd /etc/xdg/nvim/pack/plugins/opt/telescope-fzf-native
+cmake -DCMAKE_BUILD_TYPE=Release -B build
+cmake --build build
+
+# Create nvim config symlink.
+mkdir -p /root/.config
+ln -s ../../etc/xdg/nvim /root/.config/nvim
+```
+
+**Option 1**: Repeat the last step without `genkernel(8)`.
+
+```sh
+# Boot system and back up working kernel config.
+mount /boot
+modprobe configs
+gzip -dc /proc/config.gz > /usr/src/linux/.config
+
+# Disable systemd-boot entries.
+mv /boot/loader/entries/linux.conf /boot/genkernel-6.12.16-gentoo.conf
+
+# Halt system and boot from installation media to repeat the process withoout genkernel(8).
+halt -p
+```
+
+**Option 2**: Finish installation.
+
+```sh
+# Update environment.
+env-update
+source /etc/profile
+export PS1="(chroot) ${PS1}"
+
+# Configure pulseaudio.
+emerge -avn media-sound/pulseaudio media-sound/sox
+systemctl --global enable pulseaudio pulseaudio.socket
+
+tee -a /etc/pulse/daemon.conf >/dev/null <<'EOF'
+default-sample-rate = 44100
+alternate-sample-rate = 48000
+EOF
+
+# Install multimedia utilities.
+emerge -avn media-sound/{ncpamixer,pulseaudio-ctl}
+ln -s ncpamixer /usr/bin/mixer
+
+
 
 # Set root password.
 passwd
