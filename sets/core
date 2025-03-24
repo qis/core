@@ -16,6 +16,9 @@ dev-lang/perl
 dev-lang/python
 dev-python/pip
 
+# Compiler
+llvm-core/llvm
+
 # Development
 dev-build/cmake
 dev-build/ninja
@@ -76,7 +79,3 @@ sys-apps/pv
 sys-process/btop
 sys-process/htop
 sys-process/time
-
-# Audio
-media-libs/alsa-lib
-media-sound/alsa-utils

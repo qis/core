@@ -1,18 +1,8 @@
-# Audio
-media-libs/libpulse
-media-sound/pulseaudio
-media-sound/pulseaudio-daemon
-media-sound/jack2
-media-video/pipewire
-
 # Development
 dev-lang/go
 dev-lang/rust
 dev-lang/rust-bin
 dev-java/*
-
-# LLVM
-llvm-core/*
 
 # Editor
 app-editors/vim

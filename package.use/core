@@ -7,6 +7,9 @@ app-arch/p7zip rar
 dev-libs/libzip lzma zstd tools
 sys-libs/zlib minizip
 
+# Compiler
+llvm-core/llvm binutils-plugin libedit libffi xml z3 zstd
+
 # Scripting
 dev-lang/perl ithreads
 
@@ -35,6 +38,3 @@ sys-kernel/linux-firmware initramfs redistributable unknown-license
 
 # Wireless
 net-wireless/wpa_supplicant ap fasteap tkip wep wps
-
-# Audio
-media-libs/libsndfile minimal

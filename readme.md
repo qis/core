@@ -401,6 +401,8 @@ eselect news read
 mkdir /etc/portage/sets
 
 # Create @core set.
+wget https://raw.githubusercontent.com/qis/core/master/profile/package.use.force/core \
+  -O /etc/portage/profile/package.use.force/core
 wget https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/core \
   -O /etc/portage/package.accept_keywords/core
 wget https://raw.githubusercontent.com/qis/core/master/package.mask/core \
@@ -506,7 +508,7 @@ ln -s nvim /usr/bin/vim
 ln -s nvim /usr/bin/vi
 
 # Configure editor.
-echo "EDITOR=/usr/bin/vim" > /etc/env.d/01editor
+echo "EDITOR=/usr/bin/vim" > /etc/env.d/99editor
 
 # Configure time zone.
 ln -snf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
@@ -806,9 +808,12 @@ exit
 sudo reboot
 ```
 
-Used disk space:
-* `/dev/nvme0n1p1` 30M
-* `/dev/nvme0n1p3` 10G
+Used disk space.
+
+```
+/dev/nvme0n1p1 30M /boot
+/dev/nvme0n1p3 10G /
+```
 
 ## Desktop
 Install and configure desktop packages.
@@ -817,78 +822,46 @@ Install and configure desktop packages.
 # Log in as root.
 sudo su -
 
-tee /etc/portage/package.mask/desktop >/dev/null <<'EOF'
-# Sound
-media-sound/pulseaudio-daemon
-media-libs/libpulse
-media-sound/jack2
-media-sound/pulseaudio
-media-video/pipewire
+# Create @desktop set.
+wget https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/desktop \
+  -O /etc/portage/package.accept_keywords/desktop
+wget https://raw.githubusercontent.com/qis/core/master/package.mask/desktop \
+  -O /etc/portage/package.mask/desktop
+wget https://raw.githubusercontent.com/qis/core/master/package.use/desktop \
+  -O /etc/portage/package.use/desktop
+wget https://raw.githubusercontent.com/qis/core/master/sets/desktop \
+  -O /etc/portage/sets/desktop
 
-# Toolkits
-dev-python/pyqt5
-dev-qt/qtwebengine
-gui-libs/gtk
-EOF
+# Update @world set USE flags.
+emerge -avtDUu @world
 
-tee /etc/portage/package.use/desktop >/dev/null <<'EOF'
-# Sound
-media-libs/libsndfile minimal
-EOF
-
-emerge -avn media-libs/alsa-lib media-sound/alsa-utils
-
-aplay -l
-aplay -D hw:0,0 /dev/zero --dump-hw-params
-
-mkdir -p /etc/pipewire/pipewire.conf.d
-
-tee /etc/pipewire/pipewire.conf.d/rates.conf >/dev/null <<'EOF'
-context.properties = {
-  default.clock.rate = 48000
-  default.clock.allowed-rates = [ 48000 44100 ]
-  default.clock.quantum = 2048
-  default.clock.min-quantum = 1024
-  default.clock.max-quantum = 4096
-  default.clock.quantum-floor = 1024
-  default.clock.quantum-limit = 4096
-}
-EOF
+# Install @desktop set.
+emerge -avn @desktop
+emerge -ac
 ```
 
 Configure installed packages as user.
 
 ```sh
-# Configure pipewire(1).
-systemctl --user enable --now pipewire pipewire-pulse wireplumber
-
-EDITOR=vim systemctl --user edit pipewire.service
-# [Service]
-# Nice=-20
-# CPUSchedulingPolicy=rr
-# CPUSchedulingPriority=20
-
-systemctl --user daemon-reload
-systemctl --user restart pipewire pipewire-pulse wireplumber
-
-pw-dump
-wpctl status
-wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+
 ```
 
 Test installed packages as user.
 
 ```sh
+# Change volume.
+alsamixer
+
+# Play sound file using ALSA.
 wget https://raw.githubusercontent.com/qis/core/master/test.wav
+aplay test.wav
 
-# Test alsa.
-sudo aplay test.wav
-
-# Test pipewire.
-pw-play test.wav
-
-# Test pulseaudio.
-paplay test.wav
+# Convert and play sound file using SoX.
+sox test.wav test.mp3
+sox test.wav test.ogg
+sox test.wav test.flac
+play -q test.mp3
+play -q test.ogg
+play test.flac
 ```
 
 
@@ -956,29 +929,9 @@ mkdir -p /root/.config
 ln -s ../../etc/xdg/nvim /root/.config/nvim
 ```
 
-**Option 1**: Repeat the last step without `genkernel(8)`.
+Finish installation.
 
 ```sh
-# Boot system and back up working kernel config.
-mount /boot
-modprobe configs
-gzip -dc /proc/config.gz > /usr/src/linux/.config
-
-# Disable systemd-boot entries.
-mv /boot/loader/entries/linux.conf /boot/genkernel-6.12.16-gentoo.conf
-
-# Halt system and boot from installation media to repeat the process withoout genkernel(8).
-halt -p
-```
-
-**Option 2**: Finish installation.
-
-```sh
-# Update environment.
-env-update
-source /etc/profile
-export PS1="(chroot) ${PS1}"
-
 # Configure pulseaudio.
 emerge -avn media-sound/pulseaudio media-sound/sox
 systemctl --global enable pulseaudio pulseaudio.socket
@@ -1006,61 +959,6 @@ umount -R /mnt/gentoo
 
 # Halt system and remove installation media.
 halt -p
-```
-
-Configure system.
-
-```sh
-# Install SSH config.
-scp -r .ssh core:
-
-# Log in as user.
-ssh core
-
-# Configure ssh.
-chmod 0755 .ssh
-chmod 0644 .ssh/*
-chmod 0600 .ssh/id_rsa
-cp .ssh/id_rsa.pub .ssh/authorized_keys
-rm -f .ssh/.known_hosts* .ssh/known_hosts
-
-# Log in as root.
-sudo su -
-
-# Set hostname.
-hostnamectl hostname core
-
-# Configure locale.
-localectl list-locales
-localectl set-locale LANG=en_US.UTF-8
-localectl set-locale LC_TIME=C.UTF-8
-localectl set-locale LC_CTYPE=C.UTF-8
-localectl set-locale LC_COLLATE=C.UTF-8
-localectl set-locale LC_NUMERIC=C.UTF-8
-localectl set-locale LC_MESSAGES=C.UTF-8
-localectl set-locale LC_PAPER=ru_RU.UTF-8
-localectl set-locale LC_NAME=ru_RU.UTF-8
-localectl set-locale LC_ADDRESS=ru_RU.UTF-8
-localectl set-locale LC_TELEPHONE=ru_RU.UTF-8
-localectl set-locale LC_MONETARY=ru_RU.UTF-8
-localectl set-locale LC_MEASUREMENT=ru_RU.UTF-8
-localectl set-locale LC_IDENTIFICATION=ru_RU.UTF-8
-
-# Update environment.
-env-update
-source /etc/profile
-
-# Configure systemd.
-systemd-firstboot --prompt --setup-machine-id
-
-# Configure systemd services.
-systemctl preset-all --preset-mode=enable-only
-
-# Enable time synchronization.
-systemctl enable systemd-timesyncd
-
-# Log out as root.
-exit
 ```
 
 ## User
@@ -1557,7 +1455,7 @@ equery l @world
 emerge -epv @world
 
 # Rebuild world set after sync or cahnged USE flags.
-emerge -auUD @world
+emerge -avtDUu @world
 
 # Remove port from world set.
 emerge -W app-admin/sudo
