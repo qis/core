@@ -17,7 +17,9 @@ dev-lang/python
 dev-python/pip
 
 # Compiler
+llvm-core/lldb
 llvm-core/llvm
+llvm-core/clang
 
 # Development
 dev-build/cmake

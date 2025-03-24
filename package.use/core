@@ -8,7 +8,14 @@ dev-libs/libzip lzma zstd tools
 sys-libs/zlib minizip
 
 # Compiler
+llvm-core/lldb libedit lzma ncurses python xml
 llvm-core/llvm binutils-plugin libedit libffi xml z3 zstd
+llvm-core/clang-common default-compiler-rt default-libcxx default-lld llvm-libunwind
+llvm-core/clang-runtime compiler-rt libcxx openmp sanitize
+llvm-runtimes/compiler-rt atomic-builtins
+llvm-runtimes/libunwind static-libs
+llvm-runtimes/libcxxabi static-libs
+llvm-runtimes/libcxx static-libs
 
 # Scripting
 dev-lang/perl ithreads
