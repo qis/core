@@ -11,11 +11,6 @@ app-arch/xz-utils
 app-arch/zip
 dev-libs/libzip
 
-# Scripting
-dev-lang/perl
-dev-lang/python
-dev-python/pip
-
 # Compiler
 llvm-core/lldb
 llvm-core/llvm
@@ -25,31 +20,25 @@ llvm-core/clang
 dev-build/cmake
 dev-build/ninja
 dev-lang/nasm
+dev-lang/perl
+dev-lang/rust-bin
 dev-lang/yasm
 dev-util/patchelf
 dev-vcs/git
+
+# Python
+dev-lang/python
+dev-python/pip
 
 # Libraries
 dev-db/sqlite
 dev-libs/boost
 dev-libs/botan
 
-# Editor
-app-editors/neovim
-dev-libs/tree-sitter
-dev-python/pynvim
-
 # Filesystem
 sys-block/parted
 sys-fs/dosfstools
 sys-fs/zfs
-
-# Fonts
-media-fonts/liberation-fonts
-media-fonts/terminus-font
-media-libs/fontconfig
-media-libs/freetype
-media-libs/harfbuzz
 
 # Hardware
 sys-apps/bolt
@@ -65,9 +54,18 @@ app-misc/c_rehash
 app-shells/bash-completion
 net-misc/dhcpcd
 net-misc/openssh
+sys-apps/lsb-release
 sys-apps/moreutils
 sys-auth/polkit
+sys-auth/rtkit
 sys-auth/seatd
+
+# Fonts
+media-fonts/liberation-fonts
+media-fonts/terminus-font
+media-libs/fontconfig
+media-libs/freetype
+media-libs/harfbuzz
 
 # Tools
 app-misc/jq
@@ -81,3 +79,21 @@ sys-apps/pv
 sys-process/btop
 sys-process/htop
 sys-process/time
+
+# Editor
+app-editors/helix
+dev-libs/tree-sitter
+dev-libs/tree-sitter-c
+dev-libs/tree-sitter-cpp
+dev-libs/tree-sitter-cmake
+dev-libs/tree-sitter-css
+dev-libs/tree-sitter-html
+dev-libs/tree-sitter-javascript
+dev-libs/tree-sitter-json
+dev-libs/tree-sitter-lua
+dev-libs/tree-sitter-markdown
+dev-libs/tree-sitter-markdown-inline
+dev-libs/tree-sitter-python
+dev-libs/tree-sitter-regex
+dev-libs/tree-sitter-rust
+dev-libs/tree-sitter-typescript

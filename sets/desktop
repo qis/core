@@ -1,82 +1,87 @@
 # Audio
 media-libs/alsa-lib
+media-libs/libpulse
 media-plugins/alsa-plugins
 media-sound/alsa-utils
+media-sound/sox
+media-video/pipewire
+media-video/wireplumber
 
 # Video
 media-libs/mesa
-
-# Multimedia
-media-sound/sox
+media-libs/vulkan-layers
+media-libs/vulkan-loader
 media-video/ffmpeg
+media-video/mpv
+dev-util/vulkan-tools
+
+# Image
+media-gfx/chafa
+media-gfx/imagemagick
+media-gfx/pngcrush
+media-gfx/pqiv
+
+# Fonts
+media-fonts/corefonts
+media-fonts/dejavu
+media-fonts/fontawesome
+media-fonts/freefonts
+media-fonts/liberation-fonts
+media-fonts/noto
+media-fonts/noto-emoji
+media-fonts/roboto
+
+# Themes
+gui-apps/qt6ct
+gnome-base/dconf
+gnome-base/dconf-editor
+x11-themes/adwaita-icon-theme
+x11-themes/adwaita-qt
+
+# Libraries
+dev-libs/atk
+net-misc/yt-dlp
 
 # Compositor
 gui-wm/hyprland
+x11-apps/xdpyinfo
+x11-apps/xprop
+x11-apps/xrandr
+x11-apps/xrdb
+x11-base/xwayland
 
-# # Desktop
-# gui-wm/hyprland
-# x11-apps/xdpyinfo
-# x11-apps/xprop
-# x11-apps/xrandr
-# x11-apps/xrdb
-# x11-misc/cdm
-#
-# # Fonts
-# media-fonts/dejavu
-# media-fonts/fontawesome
-# media-fonts/freefonts
-# media-fonts/liberation-fonts
-# media-fonts/noto
-# media-fonts/noto-emoji
-# media-fonts/roboto
-#
-# # Portals
-# sys-apps/xdg-desktop-portal
-# sys-apps/xdg-desktop-portal-gtk
-# gui-libs/xdg-desktop-portal-lxqt
-# gui-libs/xdg-desktop-portal-wlr
-#
-# # Camera
-# media-tv/v4l-utils
-#
-# # Printing
-# net-print/cups
-# net-print/cups-pdf
-#
-# # Scanning
-# app-text/unpaper
-# media-gfx/gscan2pdf
-# media-gfx/sane-backends
-# media-gfx/sane-frontends
-#
-# # Terminal
-# x11-terms/mlterm
-#
-# # Themes
-# x11-themes/adwaita-icon-theme
-# x11-themes/adwaita-qt
-#
-# # System
-# app-misc/brightnessctl
-# app-misc/piper
-#
-# # Applications
-# gnome-base/dconf
-# gnome-base/dconf-editor
-# gui-apps/grim
-# gui-apps/slurp
-# gui-apps/swaylock
-# gui-apps/waybar
-# gui-apps/wl-clipboard
-# gui-apps/wofi
-# media-gfx/feh
-# media-gfx/imagemagick
-# media-gfx/pngcrush
-# media-sound/pavucontrol
-# media-video/ffmpeg
-# media-video/mpv
-# net-misc/rdesktop
-# sci-calculators/qalculate-gtk
-# sys-apps/flatpak
-# x11-misc/qt5ct
+# Display Manager
+gui-libs/greetd
+gui-apps/tuigreet
+
+# Desktop Environment
+gui-apps/grim
+gui-apps/slurp
+gui-apps/swaylock
+gui-apps/waybar
+gui-apps/wl-clipboard
+gui-apps/wofi
+
+# Portals
+sys-apps/xdg-desktop-portal
+sys-apps/xdg-desktop-portal-gtk
+
+# Terminal
+gui-apps/foot
+
+# Input
+dev-libs/libratbag
+
+# Monitor
+app-misc/ddccontrol
+
+# Camera
+media-libs/libv4l
+media-video/guvcview
+
+# Applications
+sci-calculators/qalculate-qt
+sys-apps/flatpak
+
+# Wine
 # virtual/wine

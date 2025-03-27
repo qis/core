@@ -1,84 +1,70 @@
 # Audio
 media-libs/libsndfile minimal
 media-plugins/alsa-plugins mix usb_stream ffmpeg libsamplerate speex
+media-sound/sox amr encode flac id3tag ladspa mad ogg openmp opus png sndfile twolame wavpack
+media-video/wireplumber LUA_SINGLE_TARGET: lua5-4
+media-video/pipewire echo-cancel extra flatpak sound-server
 
 # Video
-media-libs/mesa
+media-libs/mesa lm-sensors opengl proprietary-codecs vaapi vulkan
+media-libs/libsdl2 gles2 vulkan
+media-libs/libde265 dec265 enc265 tools
+media-libs/vulkan-loader layers
+media-video/ffmpeg libass libv4l v4l vaapi vpx x264 x265 xvid
+dev-util/vulkan-tools cube
 
-# Multimedia
-media-sound/sox amr encode flac id3tag ladspa mad ogg openmp opus png sndfile twolame wavpack
-media-video/ffmpeg libass libv4l v4l vpx xvid
+# TODO: Experiment with `mpv -vo=help`. These USE flags work for VMWare guests.
+media-video/mpv dvb drm egl -opengl tools vaapi -vulkan
+
+# Image
+media-libs/freeimage jpeg openexr png raw tiff webp
+media-libs/libraw jpeg zlib
+media-libs/libheif aom webp x265
+media-libs/openexr threads utils
+media-libs/tiff jbig jpeg lerc libdeflate lzma webp zlib zstd
+media-gfx/chafa tools webp
+media-gfx/imagemagick bzip2 corefonts cxx fontconfig hdri heif jpeg lcms lqr lzma openexr openmp
+media-gfx/imagemagick pango png postscript raw svg tiff truetype webp xml zip zlib
+media-gfx/pqiv ffmpeg imagemagick webp
+
+# Fonts
+media-fonts/fontawesome otf ttf
+media-fonts/fonts-meta emoji
+media-fonts/noto-emoji icons
+media-fonts/noto cjk extra
+
+# Themes
+gui-libs/libadwaita
+x11-themes/adwaita-qt qt6
+
+# Libraries
+app-text/poppler cairo
+dev-libs/libdbusmenu gtk3
+dev-qt/* gui qml widgets
+#dev-qt/qtprintsupport cups
+kde-frameworks/* qml
+x11-libs/libxcb xkb
 
 # Compositor
-gui-wm/hyprland -legacy-renderer -qtutils
+gui-wm/hyprland qtutils -legacy-renderer
 
-# # Desktop
-# app-text/xmlto text
-# gui-libs/wlroots x11-backend
-# media-fonts/fontawesome otf ttf
-# media-fonts/fonts-meta emoji
-# media-fonts/noto cjk
-# media-libs/imlib2 shm tiff lzma svg
-# media-libs/opencv contrib contribdnn
-# media-libs/vulkan-loader layers
-# x11-libs/libxcb xkb
-#
-# # Graphics
-# media-gfx/imagemagick hdri lzma openexr perl svg tiff xml
-# media-libs/tiff lzma zstd
-#
-# # Multimedia
-# media-libs/libv4l dvb
-# media-libs/libva xv
-# media-plugins/gst-plugins-meta dvb ffmpeg http lame mpeg taglib v4l vpx
-# media-tv/v4l-utils bpf dvb qt5
-# media-video/ffmpeg libass libv4l v4l vpx xvid
-# media-video/mpv dvb lua -sdl
-#
-# # Portals
-# sys-apps/xdg-desktop-portal screencast
-#
-# # SDL
-# media-libs/libsdl2 haptic joystick libsamplerate threads video
-# media-libs/sdl2-mixer tremor wav
-# media-libs/sdl2-ttf harfbuzz
-#
-# # Gtk
-# dev-libs/libdbusmenu gtk3
-#
-# # Qt
-# dev-qt/* qml widgets
-# dev-qt/qtdeclarative jit
-# dev-qt/qtgui accessibility
-# dev-qt/qtnetwork ssl
-# dev-qt/qtsql sqlite
-# dev-qt/qtwidgets gtk
-#
-# # Qt Addons
-# dev-qt/qtprintsupport cups
-# dev-qt/qtscript jit scripttools
-#
-# # Flatpak
-# dev-util/ostree curl
-# net-libs/libsoup brotli
-#
-# # Applications
-# app-crypt/gcr gtk
-# app-text/evince postscript
-# app-text/ghostscript-gpl gtk
-# app-text/poppler cairo cjk qt5 tiff
-# app-text/xmlto text
-# gui-apps/waybar experimental network tray wifi
-# media-gfx/feh curl exif inotify
-# media-gfx/sane-backends threads
-# media-gfx/sane-frontends gtk
-# media-libs/gd tiff zlim
-# net-misc/openssh -X
-# net-misc/rdesktop ipv6 kerberos
-# sci-libs/libqalculate readline gnuplot
-# sci-visualization/gnuplot gd readline bitmap
-#
-# # Wine
+# Desktop Environment
+gui-apps/grim jpeg
+gui-apps/waybar network pipewire tray upower wifi
+
+# Portals
+sys-apps/xdg-desktop-portal flatpak
+
+# Monitor
+app-misc/ddccontrol -gui
+
+# Camera
+media-video/guvcview qt6
+
+# Applications
+sci-libs/libqalculate gnuplot
+
+# Wine
 # app-emulation/vkd3d spirv-tools
 # app-emulation/wine-proton gecko gstreamer mono openal sdl
 # app-emulation/wine-proton ssl unwind usb v4l vkd3d xcomposite

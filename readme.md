@@ -387,7 +387,7 @@ tee /etc/fstab >/dev/null <<'EOF'
 EOF
 
 # Create make.conf.
-# Add `vmware` to the `VIDEO_CARDS` list for VMWare guest.
+# Add `lavapipe vmware` to the `VIDEO_CARDS` list for VMWare guest.
 wget https://raw.githubusercontent.com/qis/core/master/make.conf -O /etc/portage/make.conf
 
 # Synchronize portage.
@@ -403,8 +403,6 @@ mkdir /etc/portage/sets
 # Create @core set.
 wget https://raw.githubusercontent.com/qis/core/master/profile/package.use.force/core \
   -O /etc/portage/profile/package.use.force/core
-wget https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/core \
-  -O /etc/portage/package.accept_keywords/core
 wget https://raw.githubusercontent.com/qis/core/master/package.mask/core \
   -O /etc/portage/package.mask/core
 wget https://raw.githubusercontent.com/qis/core/master/package.use/core \
@@ -503,12 +501,15 @@ systemctl enable zfs-import.target
 # emerge -avn app-emulation/open-vm-tools
 # systemctl enable vmtoolsd
 
-# Create editor symlinks.
-ln -s nvim /usr/bin/vim
-ln -s nvim /usr/bin/vi
+# Create editor symlink.
+ln -s hx /usr/bin/vi
 
 # Configure editor.
-echo "EDITOR=/usr/bin/vim" > /etc/env.d/99editor
+mkdir -p /etc/helix /root/.config
+wget https://raw.githubusercontent.com/qis/core/master/helix/config.toml -O /etc/helix/config.toml
+wget https://raw.githubusercontent.com/qis/core/master/helix/languages.toml -O /etc/helix/languages.toml
+echo "EDITOR=/usr/bin/hx" > /etc/env.d/99editor
+ln -s /etc/helix /root/.config/helix
 
 # Configure time zone.
 ln -snf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
@@ -624,7 +625,7 @@ HandleLidSwitchDocked=ignore
 EOF
 
 # Configure shell.
-curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/bash/bashrc.d/core
+curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/bash/bashrc.d/99-core.bash
 
 # Configure tmux.
 curl -L https://raw.githubusercontent.com/qis/core/master/tmux.conf -o /etc/tmux.conf
@@ -757,6 +758,18 @@ chmod 0600 .ssh/id_rsa
 cp .ssh/id_rsa.pub .ssh/authorized_keys
 rm -f .ssh/.known_hosts* .ssh/known_hosts
 
+# Configure btop.
+tee ~/.config/btop/btop.conf >/dev/null <<'EOF'
+shown_boxes = "cpu proc"
+theme_background = False
+proc_cpu_graphs = False
+proc_sorting = "cpu lazy"
+proc_filter_kernel = True
+proc_aggregate = True
+proc_gradient = False
+proc_tree = True
+EOF
+
 # Log in as root.
 sudo su -
 
@@ -822,6 +835,21 @@ Install and configure desktop packages.
 # Log in as root.
 sudo su -
 
+# Enable GURU repository.
+# emerge -avn app-eselect/eselect-repository
+# eselect repository enable guru
+# emaint sync -r guru
+# emerge -auUD @world
+
+# Add desktop section to make.conf.
+tee -a /etc/portage/make.conf >/dev/null <<'EOF'
+
+# Desktop
+USE="${USE} alsa -ao -jack -oss -pipewire -pulseaudio -sndio"
+USE="${USE} aac encode flac id3tag mad mp3 mp4 mpeg ogg opus sound theora vorbis x264 x265"
+USE="${USE} X egl opengl truetype vulkan wayland"
+EOF
+
 # Create @desktop set.
 wget https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/desktop \
   -O /etc/portage/package.accept_keywords/desktop
@@ -832,28 +860,104 @@ wget https://raw.githubusercontent.com/qis/core/master/package.use/desktop \
 wget https://raw.githubusercontent.com/qis/core/master/sets/desktop \
   -O /etc/portage/sets/desktop
 
-# Update @world set USE flags.
-emerge -avtDUu @world
+# Update @world set.
+emerge -auUD @world
+emerge -ac
 
 # Install @desktop set.
 emerge -avn @desktop
 emerge -ac
+
+# Install hyprland desktop portal.
+git clone -b v1.3.9 --recurse https://github.com/hyprwm/xdg-desktop-portal-hyprland /tmp/hyprland
+
+cmake -GNinja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/usr \
+  -DCMAKE_INSTALL_LIBEXECDIR=/usr/lib \
+  -B build /tmp/hyprland
+
+cmake --build /tmp/hyprland/build --target install
+
+# Install hyprland wallpaper utility.
+git clone -b v0.7.1 --recurse https://github.com/hyprwm/hyprpaper /tmp/hyprpaper
+
+cmake -GNinja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/usr \
+  -B build /tmp/hyprpaper
+
+cmake --build /tmp/hyprpaper/build --target install
+
+# Add user to new groups.
+gpasswd -a qis pipewire
+gpasswd -a qis rtkit
+
+# Configure GTK theme.
+tee /etc/gtk-3.0/settings.ini >/dev/null <<'EOF'
+[Settings]
+gtk-theme-name = Adwaita
+gtk-icon-theme-name = Adwaita
+gtk-cursor-theme-name = Adwaita
+gtk-application-prefer-dark-theme = true
+EOF
+
+# Configure display manager.
+systemctl enable greetd
+
+tee /etc/greetd/config.toml >/dev/null <<'EOF'
+[terminal]
+vt = 7
+
+[default_session]
+command = "tuigreet -w 24 -r -c 'dbus-run-session Hyprland' --asterisks --theme 'action=black;border=black;prompt=green' --kb-command 13 --kb-sessions 14"
+user = "greetd"
+EOF
+
+# Configure input devices.
+systemctl enable ratbagd
+gpasswd -a qis plugdev
+
+# Create image viewer symlink.
+ln -s chafa /usr/bin/view
+
+# Configure flatpak.
+flatpak config --system --set languages en
+
+# Reboot system.
+reboot
 ```
 
 Configure installed packages as user.
 
 ```sh
-```
+# Configure btop.
+tee ~/.config/btop/btop.conf >/dev/null <<'EOF'
+shown_boxes = "cpu proc"
+theme_background = False
+proc_cpu_graphs = False
+proc_sorting = "cpu lazy"
+proc_filter_kernel = True
+proc_aggregate = True
+proc_gradient = False
+proc_tree = True
+EOF
 
-Test installed packages as user.
+# Configure pipewire.
+systemctl --user enable --now pipewire pipewire-pulse wireplumber
 
-```sh
 # Change volume.
 alsamixer
 
-# Play sound file using ALSA.
+# Download sound file.
 wget https://raw.githubusercontent.com/qis/core/master/test.wav
+
+# Play sound file using ALSA.
 aplay test.wav
+
+# Play sound using PipeWire.
+# NOTE: Kernel 6.13 CONFIG_PREEMPT_LAZY might fix stutters.
+pw-play test.wav
 
 # Convert and play sound file using SoX.
 sox test.wav test.mp3
@@ -862,10 +966,80 @@ sox test.wav test.flac
 play -q test.mp3
 play -q test.ogg
 play test.flac
+
+# Configure GTK applications.
+gsettings set org.gnome.desktop.interface scaling-factor 1
+gsettings set org.gnome.desktop.interface text-scaling-factor 0.9
+gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'
+gsettings set org.gnome.desktop.interface cursor-size 24
+
+# Configure Qt6 applications.
+qt6ct
+
+# Configure wofi.
+mkdir ~/.config/wofi
+tee ~/.config/wofi/style.css >/dev/null <<'EOF'
+* { border-radius: 0; }
+EOF
+
+# Configure printing support.
+# Connect to http://localhost:631/admin and add printer.
+# [Find New Printers]
+#  Connection: socket://10.0.0.99
+#  Name: Note
+#  Description: Canon MF244dw
+#  Location: Local Printer
+#  Make: Generic
+#  Model: Generic PCL Laser Printer
+
+# Verify desktop portal configuration.
+/usr/libexec/xdg-desktop-portal -v
+
+# Configure flatpak permissions.
+# flatpak override --user --show
+# flatpak override --user --reset
+# flatpak override --user --filesystem=${HOME}/.icons:ro
+flatpak override --user --socket=wayland
+
+# Configure flatpak repository.
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+# Install browser.
+flatpak install flathub one.ablaze.floorp
+
+# Install office software.
+flatpak install flathub org.libreoffice.LibreOffice
+
+# Install page layout software.
+flatpak install flathub net.scribus.Scribus
+
+# Install password manager.
+flatpak install flathub org.keepassxc.KeePassXC
+
+# Install telegram client.
+flatpak install flathub org.telegram.desktop
+
+# Install 2D software.
+flatpak install flathub org.kde.krita org.mattbas.Glaxnimate
+
+# Install 3D software.
+flatpak install flathub org.blender.Blender
+
+# Install digital audio workstation.
+flatpak install flathub org.zrythm.Zrythm
 ```
 
-
-
+<!--
+flatpak install flathub one.ablaze.floorp \
+  org.libreoffice.LibreOffice \
+  net.scribus.Scribus \
+  org.keepassxc.KeePassXC \
+  org.telegram.desktop \
+  org.kde.krita \
+  org.mattbas.Glaxnimate \
+  org.blender.Blender \
+  org.zrythm.Zrythm
+-->
 
 
 
@@ -1028,13 +1202,19 @@ Install desktop ports.
 # Log in as root.
 sudo su -
 
+# Enable GURU repository.
+# emerge -avn app-eselect/eselect-repository
+# eselect repository enable guru
+# emaint sync -r guru
+# emerge -auUD @world
+
 # Add desktop section to make.conf.
 tee -a /etc/portage/make.conf >/dev/null <<'EOF'
 
 # Desktop
-USE="${USE} X acpi cairo cups dri egl exif fontconfig gif gles2 gpm gui"
-USE="${USE} jpeg lcms libinput libnotify mng opengl pango pdf png ppds sdl"
-USE="${USE} spell svg truetype upower vaapi vulkan wayland webp xcb xft xv"
+USE="${USE} alsa -ao -jack -oss -pipewire -pulseaudio -sndio"
+USE="${USE} aac encode flac id3tag mad mp3 mp4 mpeg ogg opus sound theora vorbis x264 x265"
+USE="${USE} wayland"
 EOF
 
 # Create @desktop set.
@@ -1172,15 +1352,6 @@ flatpak install flathub \
 
 flatpak install flathub \
   org.openmw.OpenMW
-
-# Connect to http://localhost:631/admin and add printer.
-# [Find New Printers]
-#  Connection: socket://10.0.0.99
-#  Name: Note
-#  Description: Canon MF244dw
-#  Location: Local Printer
-#  Make: Generic
-#  Model: Generic PCL Laser Printer
 ```
 
 ## Virtualization
@@ -1376,7 +1547,7 @@ export PATH="${HOME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bi
 EOF
 
 # Configure shell.
-curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/profile.d/bash.sh
+curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/bash/bashrc.d/99-core.bash
 rm -f /root/.bashrc /home/qis/.bashrc
 
 # Configure git.
@@ -1387,9 +1558,6 @@ git config --global pull.rebase false
 
 # Log out as root.
 exit
-
-# Configure shell.
-ln -snf /etc/profile.d/bash.sh /home/qis/.bashrc
 
 # Configure git.
 git config --global core.eol lf

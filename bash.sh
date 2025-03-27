@@ -14,7 +14,7 @@ export LC_MESSAGES=C.UTF-8
 export LC_NUMERIC=C.UTF-8
 
 # Applications
-export EDITOR="vim"
+export EDITOR="hx"
 export PAGER="less"
 export LESS="-iqFR --no-vbell"
 
@@ -54,11 +54,11 @@ tp() {
   fi
 }
 
-if [ $(id -u) -ne 0 ]; then
-  export PS1='$(tp)\[\e[32m\]\u\[\e[0m\]@\[\e[32m\]\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\] '
-else
-  export PS1='$(tp)\[\e[31m\]\u\[\e[0m\]@\[\e[32m\]\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\] '
-fi
+case $(id -u) in
+   0) export PS1='$(tp)\[\e[31m\]\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\] ' ;;
+1000) export PS1='$(tp)\[\e[32m\]\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\] ' ;;
+   *) export PS1='$(tp)\[\e[33m\]\u\[\e[0m\]@\[\e[33m\]\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\] ' ;;
+esac
 
 if [[ $- == *i* ]]; then
   set -o emacs

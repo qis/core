@@ -1,9 +1,7 @@
 # Audio
-media-libs/libpulse
 media-sound/pulseaudio
 media-sound/pulseaudio-daemon
 media-sound/jack2
-media-video/pipewire
 
 # Toolkits
 dev-python/pyqt5

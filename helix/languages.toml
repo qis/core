@@ -1,0 +1,5 @@
+[[language]]
+name = "cpp"
+
+[language-server.clangd.config]
+fallbackFlags = [ "-std=c++26" ]
