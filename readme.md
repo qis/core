@@ -10,6 +10,10 @@ VGA: 2560x1600
 RAM: 32 GiB
 ```
 
+<!--
+https://github.com/bobranten/Ext4Fsd
+-->
+
 ## System
 Download "Admin CD" from <https://www.gentoo.org/downloads/> and create a memory stick.
 
@@ -139,7 +143,7 @@ locale-gen
 source /etc/profile
 export PS1="(chroot) ${PS1}"
 
-# Configure mouting points.
+# Configure mount points.
 tee /etc/fstab >/dev/null <<'EOF'
 /dev/nvme0n1p1 /boot vfat defaults,noatime,noauto 0 2
 /dev/nvme0n1p2 none  swap sw                      0 0
@@ -625,10 +629,10 @@ HandleLidSwitchDocked=ignore
 EOF
 
 # Configure shell.
-curl -L https://raw.githubusercontent.com/qis/core/master/bash.sh -o /etc/bash/bashrc.d/99-core.bash
+wget https://raw.githubusercontent.com/qis/core/master/bash.sh -O /etc/bash/bashrc.d/99-core.bash
 
 # Configure tmux.
-curl -L https://raw.githubusercontent.com/qis/core/master/tmux.conf -o /etc/tmux.conf
+wget https://raw.githubusercontent.com/qis/core/master/tmux.conf -O /etc/tmux.conf
 
 # Configure python.
 pip config set global.target ~/.pip
