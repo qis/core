@@ -24,7 +24,8 @@ echo "Updating environment ..."
 env-update
 
 echo "Configuring systemd ..."
-systemd-firstboot --prompt --setup-machine-id
+#systemd-firstboot --prompt --setup-machine-id
+systemd-firstboot --prompt
 
 echo "Configuring systemd services ..."
 systemctl preset-all --preset-mode=enable-only

@@ -1,33 +1,92 @@
-# Core
-Lenovo X13 Gen 3 AMD setup instructions.
+# Install
+Download [admin][admin] image and [stage][stage] archive.
 
-* UEFI Menu: F1
-* BOOT Menu: F12
+[admin]: https://distfiles.gentoo.org/releases/amd64/autobuilds/current-admincd-amd64/
+[stage]: https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd/
+
+```sh
+# Set mirror.
+export HTTPS="https://distfiles.gentoo.org/releases/amd64/autobuilds"
+export STAGE="${HTTPS}/current-stage3-amd64-nomultilib-systemd"
+export ADMIN="${HTTPS}/current-admincd-amd64"
+
+# Download image.
+wget "${ADMIN}/admincd-amd64-20250302T170343Z.iso" -O admin.iso
+wget "${ADMIN}/admincd-amd64-20250302T170343Z.iso.asc" -O admin.iso.asc
+
+# Download stage.
+wget "${STAGE}/stage3-amd64-nomultilib-systemd-20250330T165244Z.tar.xz" -O stage.tar.xz
+wget "${STAGE}/stage3-amd64-nomultilib-systemd-20250330T165244Z.tar.xz.asc" -O stage.tar.xz.asc
+
+# Import Genoo GPG key.
+mkdir gnupg; chmod 0700 gnupg
+wget https://qa-reports.gentoo.org/output/service-keys.gpg -O - 2>/dev/null | gpg --homedir gnupg --import
+gpg --homedir gnupg -k --with-colons | grep ^fpr | awk -F: '{print $10 ":6:"}' | gpg --homedir gnupg --import-ownertrust
+
+# Verify file signatures.
+gpg --homedir gnupg --verify admin.iso.asc
+gpg --homedir gnupg --verify stage.tar.xz.asc
+
+# Create installation media.
+sudo dd if=admin.iso of=/dev/sda bs=4M
+sudo head -c $(du -b admin.iso | cut -f -1) /dev/sda | gpg --homedir gnupg --verify admin.iso.asc -
+
+# Add backup partition.
+sudo parted -a optimal /dev/sda
+```
 
 ```
-CPU: AMD Ryzen 7 PRO 6850U
-VGA: 2560x1600
-RAM: 32 GiB
+unit mib
+print
+fix
+mkpart backup 800 -1
+quit
 ```
 
-## System
-1. Download "Admin CD" from <https://www.gentoo.org/downloads/> and create a memory stick.
-2. Download "Stage 3" files and copy them to the second partition of the memory stick.
-   * Save `stage3-amd64-nomultilib-systemd-*.tar.xz.asc` as `stage.tar.xz.asc`.
-   * Save `stage3-amd64-nomultilib-systemd-*.tar.xz` as `stage.tar.xz`.
+```sh
+# Format backup partition.
+sudo mkfs.exfat -L "Backup" /dev/sda5
+
+# Mount backup partition.
+sudo mount /dev/sda5 /mnt
+
+# Copy stage file.
+sudo cp -R gnupg stage.tar.xz stage.tar.xz.asc /mnt/
+
+# Create backup.
+env --chdir=/ sudo tar cpJf /tmp/etc.tar.xz etc
+env --chdir=/home/qis tar cpJf /tmp/qis.tar.xz .
+
+sudo cp /tmp/etc.tar.xz /mnt/etc.tar.xz
+sudo cp /tmp/qis.tar.xz /mnt/qis.tar.xz
+
+env --chdir=/tmp sha512sum etc.tar.xz | sudo tee /mnt/etc.tar.xz.sha512 >/dev/null
+env --chdir=/tmp sha512sum qis.tar.xz | sudo tee /mnt/qis.tar.xz.sha512 >/dev/null
+
+env --chdir=/mnt sha512sum -c etc.tar.xz.sha512
+env --chdir=/mnt sha512sum -c qis.tar.xz.sha512
+
+# Clone this repository.
+sudo git clone https://github.com/qis/core /mnt/core
+
+# Eject installation media.
+sudo umount /mnt
+sudo eject /dev/sda
+```
+
+Boot from the memory stick.
 
 ```sh
 # Set root password.
 passwd
 
-# Load kernel modules.
+# Load wireless interface kernel module.
 modprobe ath11k_pci
-modprobe mtk_t7xx
 
 # Configure network.
 net-setup
 
-# Get IP address.
+# Show IP address.
 ip addr
 
 # Start SSH service.
@@ -71,11 +130,9 @@ mkfs.fat -F32 /dev/nvme0n1p1
 
 # Create swap filesystem.
 mkswap /dev/nvme0n1p2
-
-# Enable swap filesystem.
 swapon /dev/nvme0n1p2
 
-# Load ZFS kernel module.
+# Load filesystem kernel module.
 modprobe zfs
 
 # Create system pool.
@@ -116,6 +173,14 @@ tar xpf /mnt/backup/stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/
 mkdir /mnt/gentoo/etc/zfs
 cp -L /etc/zfs/zpool.cache /mnt/gentoo/etc/zfs/
 
+# Copy core directory.
+cp -R /mnt/backup/core /mnt/gentoo/
+
+# Change core directory permissions.
+find /mnt/gentoo/core -type d -exec chmod 0755 '{}' ';'
+find /mnt/gentoo/core -type f -exec chmod 0644 '{}' ';'
+find /mnt/gentoo/core -type f -name '*.sh' -exec chmod 0755 '{}' ';'
+
 # Mount virtual filesystems.
 mount --types proc /proc /mnt/gentoo/proc
 mount --rbind /sys /mnt/gentoo/sys
@@ -154,286 +219,8 @@ tee /etc/fstab >/dev/null <<'EOF'
 EOF
 
 # Create make.conf.
-wget https://raw.githubusercontent.com/qis/core/master/make.conf -O /etc/portage/make.conf
-
-# Synchronize portage.
-cp /usr/share/portage/config/repos.conf /etc/portage/repos.conf
-emerge --sync
-
-# Select kernel version.
-emerge -s '^sys-kernel/gentoo-sources$'
-echo "=sys-kernel/gentoo-sources-6.12.16 ~amd64" > /etc/portage/package.accept_keywords/kernel
-echo "=sys-kernel/gentoo-sources-6.12.16 symlink" > /etc/portage/package.use/kernel
-
-# Install kernel sources and genkernel.
-USE="boot firmware redistributable systemd systemd-boot uki ukify -initramfs -policykit" \
-emerge -avnuU =sys-kernel/gentoo-sources-6.12.16 sys-kernel/genkernel
-
-# Use genkernel(8) to configure and build a kernel image.
-wget https://raw.githubusercontent.com/qis/core/master/genkernel.conf -O /etc/genkernel.conf
-genkernel --no-cleanup --no-install bzImage
-```
-
-<!--
-NOTE: Kernel 6.13 CONFIG_PREEMPT_LAZY might fix audio stutters.
--->
-
-```
-Gentoo Linux  --->
-
-    Support for init systems, system and service managers  --->
-
-        [ ] OpenRC, runit and other script based systems and managers
-        Symbol: GENTOO_LINUX_INIT_SCRIPT
-
-        [*] systemd
-        Symbol: GENTOO_LINUX_INIT_SYSTEMD
-
-General setup  --->
-
-    (/lib/systemd/systemd) Default init path
-    Symbol: DEFAULT_INIT
-
-    (core) Default hostname
-    Symbol: DEFAULT_HOSTNAME
-
-    Preemption Model (Preemptible Kernel (Low-Latency Desktop))  --->
-    Symbol: PREEMPT
-
-    [*] Configure standard kernel features (expert users)  --->
-    Symbol: EXPERT
-
-        [ ]   Enable PC-Speaker support
-        Symbol: PCSPKR_PLATFORM
-
-Processor type and features  --->
-
-    [ ] Support for extended (non-PC) x86 platforms
-    Symbol: X86_EXTENDED_PLATFORM
-
-    [*] Supported processor vendors  --->
-    Symbol: PROCESSOR_SELECT
-
-        [*]   Support AMD processors
-        Symbol: CPU_SUP_AMD
-
-        Disable everything else.
-
-    [ ] Enable Maximum number of SMP Processors and NUMA Nodes
-    Symbol: MAXSMP
-
-    (16) Maximum number of CPUs
-    Symbol: NR_CPUS
-
-    [ ] Enable 5-level page tables support
-    Symbol: X86_5LEVEL
-
-    Timer frequency (1000 HZ)  --->
-    Symbol: HZ_1000
-
-Power management and ACPI options  --->
-
-    (/dev/nvme0n1p2) Default resume partition
-    Symbol: PM_STD_PARTITION
-
-File systems  --->
-
-    DOS/FAT/EXFAT/NT Filesystems  --->
-
-        <*> MSDOS fs support
-        Symbol: MSDOS_FS
-
-        <*> VFAT (Windows-95) fs support
-        Symbol: VFAT_FS
-
-        <*> exFAT filesystem support
-        Symbol: EXFAT_FS
-
-        < > NTFS file system support
-        Symbol: NTFS_FS
-
-        < > NTFS Read-Write file system support
-        Symbol: NTFS3_FS
-
-    -*- Native language support  --->
-
-        {*}   NLS UTF-8
-        Symbol: NLS_UTF8
-
-Device Drivers  --->
-
-    NVME Support  --->
-
-        <*> NVM Express block device
-        Symbol: BLK_DEV_NVME
-
-        [*] NVMe multipath support
-        Symbol: NVME_MULTIPATH
-
-        [*] NVMe hardware monitoring
-        Symbol: NVME_HWMON
-
-        Disable everything else.
-
-    -*- Network device support  --->
-    Symbol: NETDEVICES
-
-        [*]   Wireless LAN  --->
-        Symbol: WLAN
-
-            [*]   Atheros/Qualcomm devices
-            Symbol: WLAN_VENDOR_ATH
-
-            <M>     Qualcomm Technologies 802.11ax chipset support
-            Symbol: ATH11K
-
-            <M>       Atheros ath11k PCI support
-            Symbol: ATH11K_PCI
-
-            [ ]       QCA ath11k debugging
-            Symbol: ATH11K_DEBUG
-
-            [ ]       QCA ath11k debugfs support
-            Symbol: ATH11K_DEBUGFS
-
-            [ ]       ath11k tracing support
-            Symbol: ATH11K_TRACING
-
-        Wireless WAN  --->
-
-            < > WWAN Driver Core
-            Symbol: WWAN
-
-            < >   MediaTek PCIe 5G WWAN modem T7xx device
-            Symbol: MTK_T7XX
-
-    Input device support  --->
-
-        [*]   Miscellaneous devices  --->
-        Symbol: INPUT_MISC
-
-            <*>   User level driver support
-            Symbol: INPUT_UINPUT
-
-    Graphics support  --->
-
-        Frame buffer Devices  --->
-
-            <*> Support for frame buffer device drivers  --->
-            Symbol: FB
-
-                [*]   EFI-based Framebuffer Support
-                Symbol: FB_EFI
-
-                Disable everything else.
-
-            Disable everything else.
-
-Library routines  --->
-
-    [*] Select compiled-in fonts
-    Symbol: FONTS
-
-        [ ]   VGA 8x16 font
-        Symbol: FONT_8x16
-
-        [ ]   Medium-size 6x10 font
-        Symbol: FONT_6x10
-
-        [*] Terminus 16x32 font (not supported by all drivers)
-        Symbol: FONT_TER16x32
-
-[*] Mitigations for CPU vulnerabilities  --->
-Symbol: CPU_MITIGATIONS
-
-    Disable unwanted mitigations.
-    Enable options required for CPU microcode to be loaded.
-    * Check the following commands after first boot:
-      - dmesg | grep -i "fail"
-      - journalctl -b -p err
-```
-
-```sh
-# Save kernel config.
-cat /usr/src/linux/.config > /boot/config
-
-# Exit chroot environment.
-exit
-
-# Unmount filesystems.
-umount -l /mnt/gentoo/dev{/shm,/pts,}
-umount -R /mnt/gentoo
-
-# Delete system pool.
-zpool destroy system
-
-# Create system pool.
-zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
-
-# Create system datasets.
-zfs create -o mountpoint=/ system/root
-
-zfs create -o mountpoint=/home system/home
-zfs create -o mountpoint=/home/qis -o encryption=aes-256-gcm -o keyformat=passphrase -o keylocation=prompt system/home/qis
-zfs create -o mountpoint=/home/qis/workspace -o compression=off system/home/qis/workspace
-
-zfs create -o mountpoint=/var system/var
-zfs create -o mountpoint=/var/tmp -o acltype=posixacl -o compression=off -o sync=disabled system/var/tmp
-zfs create -o mountpoint=/tmp -o acltype=posixacl -o compression=off -o sync=disabled system/tmp
-
-chmod 1777 /mnt/gentoo/var/tmp
-chmod 1777 /mnt/gentoo/tmp
-
-# Mount boot filesystem.
-mkdir /mnt/gentoo/boot
-mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
-
-# Extract stage archive.
-tar xpf /mnt/backup/stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
-
-# Copy zpool cache.
-mkdir /mnt/gentoo/etc/zfs
-cp -L /etc/zfs/zpool.cache /mnt/gentoo/etc/zfs/
-
-# Mount virtual filesystems.
-mount --types proc /proc /mnt/gentoo/proc
-mount --rbind /sys /mnt/gentoo/sys
-mount --make-rslave /mnt/gentoo/sys
-mount --rbind /dev /mnt/gentoo/dev
-mount --make-rslave /mnt/gentoo/dev
-mount --bind /run /mnt/gentoo/run
-mount --make-slave /mnt/gentoo/run
-
-# Copy network settings.
-cp -L /etc/resolv.conf /mnt/gentoo/etc/
-
-# Configure CPU flags.
-echo "*/* `cpuid2cpuflags`" > /mnt/gentoo/etc/portage/package.use/flags
-
-# Chroot into system.
-chroot /mnt/gentoo /bin/bash
-
-# Generate locale.
-tee /etc/locale.gen >/dev/null <<'EOF'
-en_US.UTF-8 UTF-8
-ru_RU.UTF-8 UTF-8
-EOF
-
-locale-gen
-
-# Load profile.
-source /etc/profile
-export PS1="(chroot) ${PS1}"
-
-# Configure mout points.
-tee /etc/fstab >/dev/null <<'EOF'
-/dev/nvme0n1p1 /boot vfat defaults,noatime,noauto 0 2
-/dev/nvme0n1p2 none  swap sw                      0 0
-EOF
-
-# Create make.conf.
-# Add `lavapipe vmware` to the `VIDEO_CARDS` list for VMWare guest.
-wget https://raw.githubusercontent.com/qis/core/master/make.conf -O /etc/portage/make.conf
+# Add "lavapipe vmware" to the "VIDEO_CARDS" variable for VMWare guests.
+cat /core/etc/portage/make.conf > /etc/portage/make.conf
 
 # Synchronize portage.
 cp /usr/share/portage/config/repos.conf /etc/portage/repos.conf
@@ -446,30 +233,30 @@ eselect news read
 mkdir /etc/portage/sets
 
 # Create @core set.
-wget https://raw.githubusercontent.com/qis/core/master/profile/package.use.force/core \
-  -O /etc/portage/profile/package.use.force/core
-wget https://raw.githubusercontent.com/qis/core/master/package.mask/core \
-  -O /etc/portage/package.mask/core
-wget https://raw.githubusercontent.com/qis/core/master/package.use/core \
-  -O /etc/portage/package.use/core
-wget https://raw.githubusercontent.com/qis/core/master/sets/core \
-  -O /etc/portage/sets/core
+cat /core/etc/portage/profile/package.use.force/core > /etc/portage/profile/package.use.force/core
+cat /core/etc/portage/package.mask/core > /etc/portage/package.mask/core
+cat /core/etc/portage/package.use/core > /etc/portage/package.use/core
+cat /core/etc/portage/sets/core > /etc/portage/sets/core
 
 # Select kernel version.
+emerge -s '^sys-kernel/gentoo-sources$'
 echo "=sys-kernel/gentoo-sources-6.12.16 ~amd64" > /etc/portage/package.accept_keywords/kernel
 echo "=sys-kernel/gentoo-sources-6.12.16 symlink" > /etc/portage/package.use/kernel
 
 # Install kernel sources.
 emerge -avnuU app-arch/zstd net-wireless/wireless-regdb =sys-kernel/gentoo-sources-6.12.16 sys-kernel/linux-firmware
 
-# Build kernel.
-# wget https://raw.githubusercontent.com/qis/core/master/.config -O /usr/src/linux/.config
-# gzip -dc /proc/config.gz > /usr/src/linux/.config
-cat /boot/config > /usr/src/linux/.config
+# Clean kernel.
 cd /usr/src/linux
-make clean
+make distclean
+
+# Configure kernel.
+# * Kernel 6.13 CONFIG_PREEMPT_LAZY might improve audio performance.
+cat /core/config > .config
 make oldconfig
 make menuconfig
+
+# Build kernel.
 make -j17
 
 # Install kernel modules.
@@ -1189,7 +976,7 @@ export WINEPREFIX="${HOME}/.local/games/poe"
 cd "${WINEPREFIX}/drive_c/PoE"
 
 if [ -z "${1}" ]; then
-  wine64 PathOfExile_x64.exe
+  wine PathOfExile.exe
   exit $?
 fi
 
@@ -1199,7 +986,7 @@ if [ "${1}" != "drm" ] && [ "${1}" != "wayland" ]; then
 fi
 
 gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F fsr -r 60 -o 30 -s 0.5 -g \
-  --adaptive-sync --rt --backend "${1}" --force-windows-fullscreen -- wine64 PathOfExile_x64.exe
+  --adaptive-sync --rt --backend "${1}" --force-windows-fullscreen -- wine PathOfExile.exe
 EOF
 
 chmod +x ~/.local/bin/poe
