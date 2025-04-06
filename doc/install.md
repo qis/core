@@ -52,6 +52,7 @@ sudo mount /dev/sda5 /mnt
 
 # Copy stage file.
 sudo cp -R gnupg stage.tar.xz stage.tar.xz.asc /mnt/
+env --chdir=/mnt gpg --homedir gnupg --verify stage.tar.xz.asc
 
 # Create backup.
 env --chdir=/ sudo tar cpJf /tmp/etc.tar.xz etc
