@@ -15,8 +15,8 @@ wget "${ADMIN}/admincd-amd64-20250302T170343Z.iso" -O admin.iso
 wget "${ADMIN}/admincd-amd64-20250302T170343Z.iso.asc" -O admin.iso.asc
 
 # Download stage.
-wget "${STAGE}/stage3-amd64-nomultilib-systemd-20250330T165244Z.tar.xz" -O stage.tar.xz
-wget "${STAGE}/stage3-amd64-nomultilib-systemd-20250330T165244Z.tar.xz.asc" -O stage.tar.xz.asc
+wget "${STAGE}/stage3-amd64-nomultilib-systemd-20250406T165023Z.tar.xz" -O stage.tar.xz
+wget "${STAGE}/stage3-amd64-nomultilib-systemd-20250406T165023Z.tar.xz.asc" -O stage.tar.xz.asc
 
 # Import Genoo GPG key.
 mkdir gnupg; chmod 0700 gnupg
@@ -48,30 +48,33 @@ quit
 sudo mkfs.exfat -L "Backup" /dev/sda5
 
 # Mount backup partition.
-sudo mount /dev/sda5 /mnt
+mkdir -p /mnt/backup
+sudo mount /dev/sda5 /mnt/backup
 
 # Copy stage file.
-sudo cp -R gnupg stage.tar.xz stage.tar.xz.asc /mnt/
-env --chdir=/mnt gpg --homedir gnupg --verify stage.tar.xz.asc
+sudo cp -R gnupg stage.tar.xz stage.tar.xz.asc /mnt/backup/
+env --chdir=/mnt/backup gpg --homedir gnupg --verify stage.tar.xz.asc
 
 # Create backup.
 env --chdir=/ sudo tar cpJf /tmp/etc.tar.xz etc
 env --chdir=/home/qis tar cpJf /tmp/qis.tar.xz .
 
-sudo cp /tmp/etc.tar.xz /mnt/etc.tar.xz
-sudo cp /tmp/qis.tar.xz /mnt/qis.tar.xz
+sudo cp /tmp/etc.tar.xz /mnt/backup/etc.tar.xz
+sudo cp /tmp/qis.tar.xz /mnt/backup/qis.tar.xz
 
-env --chdir=/tmp sha512sum etc.tar.xz | sudo tee /mnt/etc.tar.xz.sha512 >/dev/null
-env --chdir=/tmp sha512sum qis.tar.xz | sudo tee /mnt/qis.tar.xz.sha512 >/dev/null
+env --chdir=/tmp sha512sum etc.tar.xz | sudo tee /mnt/backup/etc.tar.xz.sha512 >/dev/null
+env --chdir=/tmp sha512sum qis.tar.xz | sudo tee /mnt/backup/qis.tar.xz.sha512 >/dev/null
 
-env --chdir=/mnt sha512sum -c etc.tar.xz.sha512
-env --chdir=/mnt sha512sum -c qis.tar.xz.sha512
+env --chdir=/mnt/backup sha512sum -c etc.tar.xz.sha512
+env --chdir=/mnt/backup sha512sum -c qis.tar.xz.sha512
 
 # Clone this repository.
-sudo git clone https://github.com/qis/core /mnt/core
+sudo git clone https://github.com/qis/core /mnt/backup/core
+
+# Unmount backup partition.
+sudo umount /mnt/backup
 
 # Eject installation media.
-sudo umount /mnt
 sudo eject /dev/sda
 ```
 
@@ -109,6 +112,13 @@ chronyd -q 'server ntp1.vniiftri.ru iburst'
 # List block devices.
 lsblk
 
+# Mount backup partition.
+mkdir /mnt/backup
+mount /dev/sda5 /mnt/backup
+env --chdir=/mnt/backup gpg --homedir gnupg --verify stage.tar.xz.asc
+env --chdir=/mnt/backup sha512sum -c etc.tar.xz.sha512
+env --chdir=/mnt/backup sha512sum -c qis.tar.xz.sha512
+
 # Partition disk.
 parted -a optimal /dev/nvme0n1
 ```
@@ -136,36 +146,32 @@ swapon /dev/nvme0n1p2
 # Load filesystem kernel module.
 modprobe zfs
 
-# Create system pool.
+# Option 1: Import system pool.
+# sh /mnt/backup/core/bin/core-zpool-import
+
+# Option 3: Create system pool.
+# sh /mnt/backup/core/bin/core-zpool-create
 zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
 
-# Create system datasets.
 zfs create -o mountpoint=/ system/root
 
 zfs create -o mountpoint=/home system/home
 zfs create -o mountpoint=/home/qis -o encryption=aes-256-gcm -o keyformat=passphrase -o keylocation=prompt system/home/qis
-zfs create -o mountpoint=/home/qis/workspace -o compression=off system/home/qis/workspace
+zfs create -o mountpoint=/home/qis/workspace -o compression=off -o encryption=off system/home/qis/workspace
 
 zfs create -o mountpoint=/var system/var
 zfs create -o mountpoint=/var/tmp -o acltype=posixacl -o compression=off -o sync=disabled system/var/tmp
 zfs create -o mountpoint=/tmp -o acltype=posixacl -o compression=off -o sync=disabled system/tmp
 
-chmod 1777 /mnt/gentoo/var/tmp
-chmod 1777 /mnt/gentoo/tmp
+zfs get all system/home/qis/workspace | grep -E "atime|encryption|acltype"
+zfs get all system/var/tmp | grep -E "atime|encryption|acltype"
+zfs get all system/tmp | grep -E "atime|encryption|acltype"
+
+chmod 1777 /mnt/gentoo/var/tmp /mnt/gentoo/tmp
 
 # Mount boot filesystem.
 mkdir /mnt/gentoo/boot
 mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
-
-# Import Genoo GPG key.
-curl -L https://qa-reports.gentoo.org/output/service-keys.gpg -o - | gpg --import
-
-# Mount second memory stick partition.
-mkdir /mnt/backup
-mount /dev/sda2 /mnt/backup
-
-# Verify stage archive.
-gpg --verify /mnt/backup/stage.tar.xz.asc
 
 # Extract stage archive.
 tar xpf /mnt/backup/stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
@@ -174,13 +180,17 @@ tar xpf /mnt/backup/stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/
 mkdir /mnt/gentoo/etc/zfs
 cp -L /etc/zfs/zpool.cache /mnt/gentoo/etc/zfs/
 
-# Copy core directory.
-cp -R /mnt/backup/core /mnt/gentoo/
+# Restore backup.
+tar xpf /mnt/backup/etc.tar.xz --numeric-owner -C /mnt/gentoo/root
+tar xpf /mnt/backup/qis.tar.xz --numeric-owner -C /mnt/gentoo/home/qis
 
-# Change core directory permissions.
-find /mnt/gentoo/core -type d -exec chmod 0755 '{}' ';'
-find /mnt/gentoo/core -type f -exec chmod 0644 '{}' ';'
-find /mnt/gentoo/core -type f -name '*.sh' -exec chmod 0755 '{}' ';'
+cp -R /mnt/backup/core /mnt/gentoo/root/
+find /mnt/gentoo/root/core -type d -exec chmod 0755 '{}' ';'
+find /mnt/gentoo/root/core -type f -exec chmod 0644 '{}' ';'
+find /mnt/gentoo/root/core -type f -name '*.sh' -exec chmod 0755 '{}' ';'
+
+# Unmount backup partition.
+umount /mnt/backup
 
 # Mount virtual filesystems.
 mount --types proc /proc /mnt/gentoo/proc
@@ -221,7 +231,7 @@ EOF
 
 # Create make.conf.
 # Add "lavapipe vmware" to the "VIDEO_CARDS" variable for VMWare guests.
-cat /core/etc/portage/make.conf > /etc/portage/make.conf
+cat /root/core/etc/portage/make.conf > /etc/portage/make.conf
 
 # Synchronize portage.
 cp /usr/share/portage/config/repos.conf /etc/portage/repos.conf
@@ -230,30 +240,32 @@ emerge --sync
 # Read portage news.
 eselect news read
 
-# Create sets directory.
-mkdir /etc/portage/sets
+# Rename old microcode image.
+if [ -f /boot/amd-uc.img ]; then
+  mv /boot/amd-uc.img /boot/amd-uc.img.old
+fi
 
-# Create @core set.
-cat /core/etc/portage/profile/package.use.force/core > /etc/portage/profile/package.use.force/core
-cat /core/etc/portage/package.mask/core > /etc/portage/package.mask/core
-cat /core/etc/portage/package.use/core > /etc/portage/package.use/core
-cat /core/etc/portage/sets/core > /etc/portage/sets/core
+# Configure firmware and kernel flags.
+tee /etc/portage/package.use/kernel >/dev/null <<'EOF'
+sys-kernel/linux-firmware compress-zstd
+sys-kernel/gentoo-sources symlink
+EOF
 
 # Select kernel version.
 emerge -s '^sys-kernel/gentoo-sources$'
-echo "=sys-kernel/gentoo-sources-6.12.16 ~amd64" > /etc/portage/package.accept_keywords/kernel
-echo "=sys-kernel/gentoo-sources-6.12.16 symlink" > /etc/portage/package.use/kernel
 
 # Install kernel sources.
-emerge -avnuU app-arch/zstd net-wireless/wireless-regdb =sys-kernel/gentoo-sources-6.12.16 sys-kernel/linux-firmware
+emerge -an net-wireless/wireless-regdb sys-kernel/linux-firmware =sys-kernel/gentoo-sources-6.12.21
 
 # Clean kernel.
 cd /usr/src/linux
 make distclean
 
 # Configure kernel.
-# * Kernel 6.13 CONFIG_PREEMPT_LAZY might improve audio performance.
-cat /core/config > .config
+# NOTE: Kernel 6.13 CONFIG_PREEMPT_LAZY might improve audio performance.
+# TODO: Append ".zst" to all amdgpu filenames in CONFIG_EXTRA_FIRMWARE.
+# TODO: Enable MEDIA_TEST_SUPPORT and V4L_TEST_DRIVERS.
+cat /root/core/.config > .config
 make oldconfig
 make menuconfig
 
@@ -264,19 +276,64 @@ make -j17
 make modules_prepare
 make modules_install
 
-# Install curl and freetype without circular dependencies.
-USE="-harfbuzz" emerge -1 net-misc/curl media-libs/freetype
-
-# Install harfbuzz and rebuild freetype with harfbuzz support.
-emerge media-libs/harfbuzz && emerge media-libs/freetype
+# Select python version.
+tee /etc/portage/package.use/python >/dev/null <<'EOF'
+*/* PYTHON_TARGETS: -* python3_11
+*/* PYTHON_SINGLE_TARGET: -* python3_11
+EOF
 
 # Rebuild @world set.
-emerge -ave @world
+emerge -ae @world
+
+# Lock python version.
+tee /etc/portage/package.mask/python >/dev/null <<'EOF'
+<dev-lang/python-3.11
+>=dev-lang/python-3.12
+EOF
+
+# Uninstall unwanted packages.
 emerge -ac
 
-# Install @core set.
+# Verify installed python version.
+emerge -pe @world | grep dev-lang/python
+
+# Install packages without circular dependencies.
+emerge -avn1 net-misc/curl media-libs/freetype media-libs/tiff
+
+# Add guru repository.
+emerge -avn1 app-eselect/eselect-repository
+eselect repository enable guru
+emaint sync -r guru
+
+# Create sets directory.
+mkdir /etc/portage/sets
+
+# Create @core set.
+cat ~/core/etc/portage/profile/package.use.force/core > /etc/portage/profile/package.use.force/core
+cat ~/core/etc/portage/package.accept_keywords/core > /etc/portage/package.accept_keywords/core
+cat ~/core/etc/portage/package.mask/core > /etc/portage/package.mask/core
+cat ~/core/etc/portage/package.use/core > /etc/portage/package.use/core
+cat ~/core/etc/portage/sets/core > /etc/portage/sets/core
+
+# Update @world and install @core set.
+emerge -auUD @world
 emerge -avn @core
 emerge -ac
+
+# Create @llvm set.
+cat ~/core/etc/portage/profile/package.use.force/llvm > /etc/portage/profile/package.use.force/llvm
+cat ~/core/etc/portage/package.accept_keywords/llvm > /etc/portage/package.accept_keywords/llvm
+cat ~/core/etc/portage/package.mask/llvm > /etc/portage/package.mask/llvm
+cat ~/core/etc/portage/package.use/llvm > /etc/portage/package.use/llvm
+cat ~/core/etc/portage/sets/llvm > /etc/portage/sets/llvm
+
+# Update @world and install @llvm set.
+emerge -auUD @world
+emerge -avn @llvm
+emerge -ac
+
+# Create a machine ID.
+systemd-machine-id-setup
 
 # Remount NVRAM variables (efivars) with read/write access.
 mount -o remount,rw /sys/firmware/efi/efivars
@@ -304,37 +361,38 @@ initrd_generator=none
 uki_generator=ukify
 EOF
 
-# Create a machine ID.
-systemd-machine-id-setup
-
 # Install kernel.
 make install
 
+# Rebuild external kernel modules.
+emerge -a @module-rebuild
+
 # Delete systemd-boot loader entry.
-rm -f /boot/loader/entries/gentoo-6.12.16-gentoo.conf
+rm /boot/loader/entries/gentoo-6.12.21-gentoo.conf
 
 # Create systemd-boot loader entry.
 tee /boot/loader/entries/linux.conf >/dev/null <<'EOF'
 title Linux
-linux /gentoo/6.12.16-gentoo/linux
-initrd /gentoo/6.12.16-gentoo/microcode-amd
-initrd /gentoo/6.12.16-gentoo/initrd
+linux /gentoo/6.12.21-gentoo/linux
+initrd /gentoo/6.12.21-gentoo/microcode-amd
+initrd /gentoo/6.12.21-gentoo/initrd
 options root=system/root ro acpi_enforce_resources=lax net.ifnames=0 quiet
 options ifname=dock:XX:XX:XX:XX:XX:XX
 options ifname=wlan:XX:XX:XX:XX:XX:XX
 EOF
 
 # Configure dracut(8).
-tee /etc/dracut.conf.d/core.conf >/dev/null <<'EOF'
+tee /etc/dracut.conf >/dev/null <<'EOF'
 early_microcode="no"
+compress="zstd"
 hostonly="yes"
 EOF
 
 # Generate initial RAM filesystem RAM disk.
-env --chdir=/boot dracut --force gentoo/6.12.16-gentoo/initrd
+env --chdir=/boot dracut --force --kver 6.12.21-gentoo gentoo/6.12.21-gentoo/initrd
 
 # Copy kernel config to boot directory.
-cat /usr/src/linux/.config > /boot/gentoo/6.12.16-gentoo/config
+cat /usr/src/linux/.config > /boot/gentoo/6.12.21-gentoo/config
 
 # Enable filesystem services.
 systemctl enable zfs.target
@@ -354,24 +412,34 @@ EOF
 # systemctl enable vmtoolsd
 
 # Configure shell.
-wget https://raw.githubusercontent.com/qis/core/master/bash.sh -O /etc/bash/bashrc.d/99-core.bash
+cat ~/core/etc/bash/bashrc.d/99-core.bash > /etc/bash/bashrc.d/99-core.bash
 
 # Configure editor.
-ln -snf hx /usr/bin/vi
 mkdir -p /etc/helix /root/.config
-wget https://raw.githubusercontent.com/qis/core/master/helix/config.toml -O /etc/helix/config.toml
-wget https://raw.githubusercontent.com/qis/core/master/helix/languages.toml -O /etc/helix/languages.toml
-echo "EDITOR=/usr/bin/hx" > /etc/env.d/99editor
 ln -snf /etc/helix /root/.config/helix
+cat ~/core/etc/helix/config.toml > /etc/helix/config.toml
+cat ~/core/etc/helix/languages.toml > /etc/helix/languages.toml
+echo "EDITOR=/usr/bin/hx" > /etc/env.d/99editor
+
+# Create editor symlink.
+ln -snf hx /usr/bin/vi
+
+# Create audio mixer symlink.
+ln -snf ncpamixer /usr/bin/mixer
+
+# Create sixel image viewer symlink.
+ln -snf chafa /usr/bin/view
 
 # Configure terminal multiplexer.
-wget https://raw.githubusercontent.com/qis/core/master/tmux.conf -O /etc/tmux.conf
+cat ~/core/etc/tmux.conf > /etc/tmux.conf
 
 # Configure time zone.
 ln -snf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 
 # Configure virtual memory.
-mkdir -p /etc/sysctl.d && tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
+mkdir -p /etc/sysctl.d
+
+tee /etc/sysctl.d/vm.conf >/dev/null <<'EOF'
 vm.max_map_count=2147483642
 vm.swappiness=1
 EOF
@@ -492,6 +560,13 @@ HandleLidSwitchExternalPower=ignore
 HandleLidSwitchDocked=ignore
 EOF
 
+# Configure pipewire jack support.
+mkdir /etc/pipewire
+cat /usr/share/pipewire/pipewire.conf > /etc/pipewire/pipewire.conf
+tee /etc/security/limits.d/50-pw-memlock.conf >/dev/null <<'EOF'
+@pipewire   - memlock unlimited
+EOF
+
 # Configure git.
 git config --global core.eol lf
 git config --global core.autocrlf false
@@ -499,7 +574,7 @@ git config --global core.filemode false
 git config --global pull.rebase false
 
 # Add user.
-useradd -m -G users,seat,wheel,audio,input,usb,video -s /bin/bash qis
+useradd -m -G users,seat,wheel,rtkit,kvm,usb,audio,video,input,pipewire -s /bin/bash qis
 chown -R qis:qis /home/qis
 passwd qis
 
@@ -537,7 +612,7 @@ zfs get canmount -s local -H -o name,value | while read line; do
 
   # Unlock and mount the volume.
   zfs load-key "$volname" <<< "$PASS" || continue
-  zfs mount "$volname" || true # ignore erros
+  zfs mount "$volname" && zfs mount "$volname/workspace" || true  # ignore erros
 done
 EOF
 
@@ -549,12 +624,19 @@ echo "auth            optional        pam_exec.so expose_authtok /sbin/mount-zfs
 zfs set canmount=noauto system/home/qis
 zfs set core.encrypt.automount:user=qis system/home/qis
 
+# Set workspace directory properties.
+zfs set canmount=noauto system/home/qis/workspace
+
 # Configure desktop runtime directory.
 tee /etc/profile.d/xdg.sh >/dev/null <<'EOF'
 export XDG_RUNTIME_DIR=/run/user/${UID}
 EOF
 
 env-update
+
+# Load profile.
+source /etc/profile
+export PS1="(chroot) ${PS1}"
 
 # Link resolv.conf to systemd.
 ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
@@ -599,7 +681,7 @@ cp .ssh/id_rsa.pub .ssh/authorized_keys
 rm -f .ssh/.known_hosts* .ssh/known_hosts
 
 # Configure btop.
-tee ~/.config/btop/btop.conf >/dev/null <<'EOF'
+mkdir -p ~/.config/btop; tee ~/.config/btop/btop.conf >/dev/null <<'EOF'
 presets = "cpu:0:default,proc:0:default"
 shown_boxes = "cpu proc"
 theme_background = False
@@ -611,11 +693,49 @@ proc_gradient = False
 proc_tree = True
 EOF
 
+# Configure wget.
+tee ~/.wgetrc >/dev/null <<'EOF'
+hsts=0
+EOF
+
+# Update cached fonts.
+fc-cache
+
+# Verify cached fonts.
+fc-list | grep "Font Awesome 6 Pro"
+
+# Configure desktop user directories.
+xdg-user-dirs-update --set DOWNLOAD    ~/downloads
+xdg-user-dirs-update --set DOCUMENTS   ~/documents
+xdg-user-dirs-update --set MUSIC       ~/documents/music
+xdg-user-dirs-update --set PICTURES    ~/documents/image
+xdg-user-dirs-update --set VIDEOS      ~/documents/video
+xdg-user-dirs-update --set DESKTOP     ~/.local/desktop
+xdg-user-dirs-update --set PUBLICSHARE ~/.local/public
+xdg-user-dirs-update --set TEMPLATES   ~/.local/templates
+
+# Create missing desktop user directories.
+mkdir -p $(xdg-user-dir RUNTIME)
+mkdir -p $(xdg-user-dir DOWNLOAD)
+mkdir -p $(xdg-user-dir DOCUMENTS)
+mkdir -p $(xdg-user-dir MUSIC)
+mkdir -p $(xdg-user-dir PICTURES)
+mkdir -p $(xdg-user-dir VIDEOS)
+mkdir -p $(xdg-user-dir DESKTOP)
+mkdir -p $(xdg-user-dir PUBLICSHARE)
+mkdir -p $(xdg-user-dir TEMPLATES)
+
+# Enable pipewire services.
+systemctl --user enable --now pipewire pipewire-pulse wireplumber
+
+# Verify pipewire services status.
+systemctl --user status pipewire pipewire-pulse wireplumber
+
 # Log in as root.
 sudo su -
 
 # Configure btop.
-tee ~/.config/btop/btop.conf >/dev/null <<'EOF'
+mkdir -p ~/.config/btop; tee ~/.config/btop/btop.conf >/dev/null <<'EOF'
 presets = "cpu:0:default,proc:0:default"
 shown_boxes = "cpu proc"
 theme_background = False
@@ -625,6 +745,11 @@ proc_filter_kernel = True
 proc_aggregate = True
 proc_gradient = False
 proc_tree = True
+EOF
+
+# Configure wget.
+tee ~/.wgetrc >/dev/null <<'EOF'
+hsts=0
 EOF
 
 # Set hostname.
@@ -656,18 +781,8 @@ systemd-firstboot --prompt
 # Configure systemd services.
 systemctl preset-all --preset-mode=enable-only
 
-# Log out as root.
-exit
-
 # Reboot system.
-sudo reboot
-```
-
-Used disk space.
-
-```
-/dev/nvme0n1p1 30M /boot
-/dev/nvme0n1p3 10G /
+reboot
 ```
 
 ## Desktop
@@ -677,56 +792,20 @@ Install and configure desktop packages.
 # Log in as root.
 sudo su -
 
-# Enable GURU repository.
-# app-misc/brightnessctl
-eselect repository enable guru
-emaint sync -r guru
-
-# Enable Steam Overlay repository.
-# games-util/steam-launcher
-# eselect repository enable steam-overlay
-# emaint sync -r steam-overlay
-
-# Add desktop section to make.conf.
-tee -a /etc/portage/make.conf >/dev/null <<'EOF'
-
-# Desktop
-USE="${USE} alsa -ao -jack -oss -pipewire -pulseaudio -sndio"
-USE="${USE} aac encode flac id3tag mad mp3 mp4 mpeg ogg opus sound theora vorbis x264 x265"
-USE="${USE} X egl opengl truetype vulkan wayland"
-EOF
-
 # Create @desktop set.
-wget https://raw.githubusercontent.com/qis/core/master/package.accept_keywords/desktop \
-  -O /etc/portage/package.accept_keywords/desktop
-wget https://raw.githubusercontent.com/qis/core/master/package.mask/desktop \
-  -O /etc/portage/package.mask/desktop
-wget https://raw.githubusercontent.com/qis/core/master/package.use/desktop \
-  -O /etc/portage/package.use/desktop
-wget https://raw.githubusercontent.com/qis/core/master/sets/desktop \
-  -O /etc/portage/sets/desktop
+cat ~/core/etc/portage/profile/package.use.force/desktop > /etc/portage/profile/package.use.force/desktop
+cat ~/core/etc/portage/package.accept_keywords/desktop > /etc/portage/package.accept_keywords/desktop
+cat ~/core/etc/portage/package.mask/desktop > /etc/portage/package.mask/desktop
+cat ~/core/etc/portage/package.use/desktop > /etc/portage/package.use/desktop
+cat ~/core/etc/portage/sets/desktop > /etc/portage/sets/desktop
 
-# Update @world set.
+# Update @world and install @desktop set.
 emerge -auUD @world
-emerge -ac
-
-# Install @desktop set.
 emerge -avn @desktop
 emerge -ac
 
-# Add user to new groups.
-gpasswd -a qis pipewire
-gpasswd -a qis rtkit
-
-# Configure pipewire jack support.
-mkdir /etc/pipewire
-cp /usr/share/pipewire/pipewire.conf /etc/pipewire/pipewire.conf
-tee /etc/security/limits.d/50-pw-memlock.conf >/dev/null <<'EOF'
-@pipewire   - memlock unlimited
-EOF
-
 # Configure GTK theme.
-tee /etc/gtk-3.0/settings.ini >/dev/null <<'EOF'
+mkdir -p /etc/gtk-3.0; tee /etc/gtk-3.0/settings.ini >/dev/null <<'EOF'
 [Settings]
 gtk-theme-name = Adwaita
 gtk-icon-theme-name = Adwaita
@@ -734,12 +813,12 @@ gtk-cursor-theme-name = Adwaita
 gtk-application-prefer-dark-theme = true
 EOF
 
-ln -snf gtk-3.0 /etc/gtk-4.0
-
-# Configure desktop portals.
-tee /usr/share/xdg-desktop-portal/hyprland-portals.conf >/dev/null <<'EOF'
-[preferred]
-default=hyprland;gtk
+mkdir -p /etc/gtk-4.0; tee /etc/gtk-4.0/settings.ini >/dev/null <<'EOF'
+[Settings]
+gtk-theme-name = Adwaita
+gtk-icon-theme-name = Adwaita
+gtk-cursor-theme-name = Adwaita
+gtk-application-prefer-dark-theme = true
 EOF
 
 # Configure display manager.
@@ -756,9 +835,6 @@ EOF
 
 touch /var/log/hyprland.log
 chown qis:qis /var/log/hyprland.log
-
-# Create sixel image viewer symlink.
-ln -snf chafa /usr/bin/view
 
 # Configure flatpak.
 flatpak config --system --set languages en
@@ -777,48 +853,15 @@ reboot
 Configure installed packages as user.
 
 ```sh
-# Restore backup.
-tar xf ~/backup.tar.xz
-
-# Update cached fonts.
-fc-cache
-
-# Verify cached fonts.
-fc-list | grep "Font Awesome 6 Pro"
-
-# Configure desktop user directories.
-xdg-user-dirs-update --set DOWNLOAD    ~/downloads
-xdg-user-dirs-update --set DOCUMENTS   ~/documents
-xdg-user-dirs-update --set MUSIC       ~/documents/music
-xdg-user-dirs-update --set PICTURES    ~/documents/image
-xdg-user-dirs-update --set VIDEOS      ~/documents/video
-xdg-user-dirs-update --set DESKTOP     ~/.local/desktop
-xdg-user-dirs-update --set PUBLICSHARE ~/.local/public
-xdg-user-dirs-update --set TEMPLATES   ~/.local/templates
-
-# Create missing desktop user directories.
-mkdir -p $(xdg-user-dir RUNTIME)
-mkdir -p $(xdg-user-dir DOWNLOAD)
-mkdir -p $(xdg-user-dir DOCUMENTS)
-mkdir -p $(xdg-user-dir MUSIC)
-mkdir -p $(xdg-user-dir PICTURES)
-mkdir -p $(xdg-user-dir VIDEOS)
-mkdir -p $(xdg-user-dir DESKTOP)
-mkdir -p $(xdg-user-dir PUBLICSHARE)
-mkdir -p $(xdg-user-dir TEMPLATES)
-
-# Check desktop portal configuration.
+# Verify desktop portal configuration.
 /usr/libexec/xdg-desktop-portal -v 2>&1 | grep -E '(hyprland|gtk)'
 
-# Check hyprland desktop portal service status.
+# Verify hyprland desktop portal service status.
 systemctl --user status xdg-desktop-portal-hyprland
-
-# Enable pipewire services.
-systemctl --user enable --now pipewire pipewire-pulse wireplumber
 
 # Configure GTK applications.
 gsettings set org.gnome.desktop.interface scaling-factor 1
-gsettings set org.gnome.desktop.interface text-scaling-factor 0.9
+gsettings set org.gnome.desktop.interface text-scaling-factor 0.8
 gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'
 gsettings set org.gnome.desktop.interface cursor-size 24
 
@@ -830,23 +873,14 @@ mkdir ~/.config/wofi
 
 tee ~/.config/wofi/config >/dev/null <<'EOF'
 term=footclient
-allow_images=true
-allow_markup=true
-insensitive=true
+allow-images=true
+allow-markup=true
 matching=fuzzy
-no_actions=true
 EOF
 
 tee ~/.config/wofi/style.css >/dev/null <<'EOF'
 * { border-radius: 0; }
 EOF
-
-# Create wine symlinks.
-ln -snf /usr/bin/wine-proton-9.0.4 ~/.local/bin/wine
-ln -snf /usr/bin/wine64-proton-9.0.4 ~/.local/bin/wine64
-ln -snf /usr/bin/wineboot-proton-9.0.4 ~/.local/bin/wineboot
-ln -snf /usr/bin/wineserver-proton-9.0.4 ~/.local/bin/wineserver
-ln -snf /usr/bin/winecfg-proton-9.0.4 ~/.local/bin/winecfg
 ```
 
 Install software using flatpak.
@@ -1762,6 +1796,9 @@ equery l @world
 
 # List world set and dependencies.
 emerge -epv @world
+
+# Show USE flags.
+portageq envvar USE | xargs -n 1
 
 # Rebuild world set after sync or cahnged USE flags.
 emerge -avtDUu @world

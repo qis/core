@@ -10,7 +10,7 @@ media-libs/mesa lm-sensors opengl proprietary-codecs vaapi vulkan
 media-libs/libsdl2 gles2 vulkan
 media-libs/libde265 dec265 enc265 tools
 media-libs/vulkan-loader layers
-media-video/ffmpeg libass libv4l v4l vaapi vpx x264 x265 xvid
+media-video/ffmpeg v4l vpx
 dev-util/vulkan-tools cube
 
 # TODO: Experiment with `mpv -vo=help`. These USE flags work for VMWare guests.
