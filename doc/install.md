@@ -39,7 +39,7 @@ sudo parted -a optimal /dev/sda
 unit mib
 print
 fix
-mkpart backup 800 -1
+mkpart backup fat32 801 -1
 quit
 ```
 
@@ -48,7 +48,7 @@ quit
 sudo mkfs.exfat -L "Backup" /dev/sda5
 
 # Mount backup partition.
-mkdir -p /mnt/backup
+sudo mkdir -p /mnt/backup
 sudo mount /dev/sda5 /mnt/backup
 
 # Copy stage file.
