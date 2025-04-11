@@ -10,13 +10,14 @@ log() {
   echo -e "${color_log}${*}${color_clr}" 1>&2
 }
 
-if [ ! -f /usr/src/linux/.config ]; then
+cd /usr/src/linux
+
+if [ ! -f .config ]; then
   echo -e "${color_red}ERROR: Missing file: /usr/src/linux/.config${color_clr}"
   exit 1
 fi
 
 log "Configuring kernel ..."
-cd /usr/src/linux
 make oldconfig
 
 core_kernel_version="$(make -s kernelrelease)"
