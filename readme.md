@@ -68,16 +68,9 @@ sudo cp -R gnupg stage.tar.xz stage.tar.xz.asc /mnt/backup/
 env --chdir=/mnt/backup gpg --homedir gnupg --verify stage.tar.xz.asc
 
 # Create backup.
-env --chdir=/ sudo tar cpJf /tmp/etc.tar.xz etc
-env --chdir=/home/qis tar cpJf /tmp/qis.tar.xz .
-
-sudo cp /tmp/etc.tar.xz /mnt/backup/etc.tar.xz
+env --chdir=/home/qis tar cpJf /tmp/qis.tar.xz --numeric-owner .
 sudo cp /tmp/qis.tar.xz /mnt/backup/qis.tar.xz
-
-env --chdir=/tmp sha512sum etc.tar.xz | sudo tee /mnt/backup/etc.tar.xz.sha512 >/dev/null
 env --chdir=/tmp sha512sum qis.tar.xz | sudo tee /mnt/backup/qis.tar.xz.sha512 >/dev/null
-
-env --chdir=/mnt/backup sha512sum -c etc.tar.xz.sha512
 env --chdir=/mnt/backup sha512sum -c qis.tar.xz.sha512
 
 # Clone this repository.
@@ -188,7 +181,7 @@ cat /core/config > /usr/src/linux/.config
 source /etc/profile
 export PS1="(chroot) ${PS1}"
 
-# Update the kernel version and network interfaces.
+# Verify kernel version and network interfaces.
 hx /boot/loader/entries/linux.conf
 
 # Verify installed python version.

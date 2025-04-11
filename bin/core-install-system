@@ -90,13 +90,9 @@ log "Creating machine ID ..."
 systemd-machine-id-setup
 
 if [ "x${1}" = "xboot" ]; then
-log "Remounting NVRAM variables (efivars) with read/write access ..."
+log "Installing systemd-boot loader ..."
 mount -o remount,rw /sys/firmware/efi/efivars
-
-log "Installing systemd-boot to ESP ..."
 bootctl install
-
-log "Configuring systemd-boot loader ..."
 tee /boot/loader/loader.conf >/dev/null <<'EOF'
 timeout 3
 default @saved
@@ -126,9 +122,17 @@ linux  /gentoo/${core_kernel_version}-gentoo/linux
 initrd /gentoo/${core_kernel_version}-gentoo/microcode-amd
 initrd /gentoo/${core_kernel_version}-gentoo/initrd
 options root=system/root ro acpi_enforce_resources=lax net.ifnames=0 quiet
-options ifname=dock:XX:XX:XX:XX:XX:XX
-options ifname=wlan:XX:XX:XX:XX:XX:XX
 EOF
+if ip link show dev dock >/dev/null 2>&1; then
+tee -a /boot/loader/entries/linux.conf >/dev/null <<EOF
+options ifname=dock:$(ip link show dev dock | grep -w link/ether | awk '{print $2}')
+EOF
+fi
+if ip link show dev wlan >/dev/null 2>&1; then
+tee -a /boot/loader/entries/linux.conf >/dev/null <<EOF
+options ifname=wlan:$(ip link show dev wlan | grep -w link/ether | awk '{print $2}')
+EOF
+fi
 fi
 
 log "Rebuilding external kernel modules ..."
