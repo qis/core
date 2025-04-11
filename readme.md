@@ -95,11 +95,11 @@ modprobe ath11k_pci
 # Configure network.
 net-setup
 
-# Show IP address.
-ip addr
-
 # Start SSH service.
 rc-service sshd start
+
+# Show IP address.
+ip addr
 ```
 
 SSH into live environment.

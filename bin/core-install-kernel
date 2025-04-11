@@ -10,7 +10,7 @@ log() {
   echo -e "${color_log}${*}${color_clr}" 1>&2
 }
 
-if [ ! -z "${1}" ]; then
+if [ -z "${1}" ]; then
   echo -e "${color_red}ERROR: Missing kernel version.${color_clr}"
   echo
   echo "usage: ${0} <kernel-version>"
