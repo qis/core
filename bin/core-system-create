@@ -73,7 +73,7 @@ log "Configuring CPU flags ..."
 echo "*/* `cpuid2cpuflags`" > /mnt/gentoo/etc/portage/package.use/flags
 
 log "Cloning core project ..."
-git clone /mnt/backup/core /mnt/gentoo/core
+git clone https://github.com/qis/core /mnt/gentoo/core
 
 log "Copying network settings ..."
 cp -L /etc/resolv.conf /mnt/gentoo/etc/
