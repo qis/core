@@ -12,19 +12,21 @@ log() {
 
 if [ ! -f /usr/src/linux/.config ]; then
   echo -e "${color_red}ERROR: Missing file: /usr/src/linux/.config${color_clr}"
+  exit 1
 fi
 
-core_kernel_version="$(make -C /usr/src/linux -s kernelrelease)"
+log "Configuring kernel ..."
+cd /usr/src/linux
+make oldconfig
+
+core_kernel_version="$(make -s kernelrelease)"
 core_kernel_install="$(cat /etc/kernel/entry-token)"
 
 if [ -z "${core_kernel_version}" ]; then
   echo -e "${color_red}ERROR: Could not determine kernel version.${color_clr}"
+  exit 1
 fi
 
-cd /usr/src/linux
-
-log "Configuring kernel ..."
-make oldconfig
 make menuconfig
 
 log "Building kernel in ${color_red}3${color_log} seconds ..."
