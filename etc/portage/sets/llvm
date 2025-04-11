@@ -1,0 +1,13 @@
+# Compiler
+llvm-core/clang
+llvm-core/lldb
+llvm-core/llvm
+
+# Rust
+dev-lang/rust-bin
+
+# Editor
+dev-libs/tree-sitter-c
+dev-libs/tree-sitter-cpp
+dev-libs/tree-sitter-rust
+dev-libs/tree-sitter-cmake

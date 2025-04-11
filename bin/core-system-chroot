@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+log "Chrooting into system ...\nExecute the following commands:"
+echo
+echo '  source /etc/profile'
+echo '  export PS1="(chroot) ${PS1}"'
+echo
+
+chroot /mnt/gentoo /bin/bash

@@ -1,0 +1,115 @@
+# Kernel
+sys-kernel/dracut
+sys-kernel/installkernel
+sys-kernel/linux-firmware
+net-wireless/wireless-regdb
+
+# Compression
+app-arch/brotli
+app-arch/p7zip
+app-arch/zip
+
+# Languages
+app-text/aspell
+
+# Development
+dev-build/cmake
+dev-build/ninja
+dev-lang/nasm
+dev-lang/yasm
+dev-util/patchelf
+
+# System
+app-admin/sudo
+sys-auth/rtkit
+app-laptop/thinkfan
+app-misc/c_rehash
+net-misc/dhcpcd
+sys-apps/ripgrep
+sys-auth/seatd
+
+# Filesystem
+sys-block/parted
+sys-fs/dosfstools
+sys-fs/exfatprogs
+sys-fs/zfs
+
+# Network
+dev-vcs/git
+net-analyzer/tcpdump
+net-misc/curl
+
+# Wireless
+net-wireless/iw
+net-wireless/wpa_supplicant
+
+# Audio
+media-plugins/alsa-plugins
+media-sound/ncpamixer
+media-sound/sox
+media-video/pipewire
+media-video/wireplumber
+
+# Video
+media-video/ffmpeg
+
+# Image
+media-gfx/chafa
+media-gfx/imagemagick
+media-gfx/pngcrush
+
+# Camera
+media-libs/libv4l
+media-video/v4l2loopback
+
+# Monitor
+app-misc/brightnessctl
+
+# Hardware
+sys-apps/lm-sensors
+sys-apps/pciutils
+sys-apps/usbutils
+sys-process/lsof
+
+# Gentoo
+app-eselect/eselect-repository
+app-portage/gentoolkit
+sys-apps/lsb-release
+
+# Desktop
+gnome-base/dconf
+x11-misc/xdg-user-dirs
+
+# Fonts
+media-fonts/terminus-font
+media-libs/fontconfig
+media-libs/freetype
+media-libs/harfbuzz
+
+# Tools
+app-misc/jq
+app-misc/symlinks
+app-misc/tmux
+app-misc/wipe
+app-text/tree
+dev-db/sqlite
+sys-apps/pv
+sys-process/btop
+
+# Shell
+app-shells/bash-completion
+
+# Editor
+app-editors/helix
+dev-libs/tree-sitter
+dev-libs/tree-sitter-css
+dev-libs/tree-sitter-html
+dev-libs/tree-sitter-json
+dev-libs/tree-sitter-markdown
+dev-libs/tree-sitter-markdown-inline
+dev-libs/tree-sitter-regex
+dev-libs/tree-sitter-bash
+dev-libs/tree-sitter-lua
+dev-libs/tree-sitter-python
+dev-libs/tree-sitter-javascript
+dev-libs/tree-sitter-typescript

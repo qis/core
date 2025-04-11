@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+log "Generating locale ..."
+tee /etc/locale.gen >/dev/null <<'EOF'
+en_US.UTF-8 UTF-8
+en_DK.UTF-8 UTF-8
+ru_RU.UTF-8 UTF-8
+EOF
+
+locale-gen
+
+log "Execute the following commands:"
+echo
+echo '  source /etc/profile'
+echo '  export PS1="(chroot) ${PS1}"'
+echo

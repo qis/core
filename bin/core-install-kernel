@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+if [ ! -z "${1}" ]; then
+  echo -e "${color_red}ERROR: Missing kernel version.${color_clr}"
+  echo
+  echo "usage: ${0} <kernel-version>"
+  echo
+  exit 1
+fi
+
+if [ -f /boot/amd-uc.img ]; then
+  log "Deleting old microcode image ..."
+  rm -f /boot/amd-uc.img
+fi
+
+log "Configuring firmware and kernel flags ..."
+cat /core/etc/portage/package.use/kernel > /etc/portage/package.use/kernel
+
+log "Installing firmware and kernel sources ..."
+emerge -an net-wireless/wireless-regdb sys-kernel/linux-firmware "=sys-kernel/gentoo-sources-${1}"

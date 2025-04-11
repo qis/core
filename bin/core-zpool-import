@@ -1,9 +1,0 @@
-#!/bin/sh
-set -e
-
-log() {
-
-}
-
-log "Importing system zpool to /mnt/gentoo ..."
-zpool import -f -R /mnt/gentoo system

@@ -1,0 +1,79 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+log "Synchronizing time ..."
+chronyd -q "server ntp1.vniiftri.ru iburst"
+
+log "Verifying stage signature ..."
+env --chdir=/mnt/backup gpg --homedir gnupg --verify stage.tar.xz.asc
+
+log "Verifying backup checksum ..."
+env --chdir=/mnt/backup sha512sum -c qis.tar.xz.sha512
+
+log "Creating swap ..."
+mkswap /dev/nvme0n1p2
+
+log "Enabling swap ..."
+swapon /dev/nvme0n1p2
+
+log "Loading ZFS kernel module ..."
+modprobe zfs
+sleep 1
+
+log "Creating system root ..."
+zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
+zfs create -o mountpoint=/ system/root
+zfs create -o mountpoint=/home system/home
+zfs create -o mountpoint=/home/qis -o encryption=aes-256-gcm -o keyformat=passphrase -o keylocation=prompt system/home/qis
+zfs create -o mountpoint=/home/qis/workspace -o compression=off -o encryption=off system/home/qis/workspace
+zfs create -o mountpoint=/var system/var
+zfs create -o mountpoint=/var/tmp -o acltype=posixacl -o compression=off -o sync=disabled system/var/tmp
+zfs create -o mountpoint=/tmp -o acltype=posixacl -o compression=off -o sync=disabled system/tmp
+
+log "Setting qis directories mount options ..."
+zfs set canmount=noauto system/home/qis
+zfs set canmount=noauto system/home/qis/workspace
+
+log "Setting tmp directories permissions ..."
+chmod 1777 /mnt/gentoo/var/tmp /mnt/gentoo/tmp
+
+log "Mounting system boot ..."
+mkdir /mnt/gentoo/boot
+mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
+
+log "Extracting stage archive ..."
+tar xpf /mnt/backup/stage.tar.xz --xattrs-include='*.*' --numeric-owner -C /mnt/gentoo
+
+log "Copying zpool cache ..."
+mkdir /mnt/gentoo/etc/zfs
+cp -L /etc/zfs/zpool.cache /mnt/gentoo/etc/zfs/
+
+log "Restoring backup ..."
+tar xpf /mnt/backup/qis.tar.xz --numeric-owner -C /mnt/gentoo/home/qis
+
+log "Mounting virtual filesystems ..."
+mount --types proc /proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys
+mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev
+mount --make-rslave /mnt/gentoo/dev
+mount --bind /run /mnt/gentoo/run
+mount --make-slave /mnt/gentoo/run
+
+log "Configuring CPU flags ..."
+echo "*/* `cpuid2cpuflags`" > /mnt/gentoo/etc/portage/package.use/flags
+
+log "Cloning core project ..."
+git clone /mnt/backup/core /mnt/gentoo/core
+
+log "Copying network settings ..."
+cp -L /etc/resolv.conf /mnt/gentoo/etc/

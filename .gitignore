@@ -1,4 +1,8 @@
 admin.iso
 admin.iso.asc
+etc.tar.xz
+etc.tar.xz.sha512
+qis.tar.xz
+qis.tar.xz.sha512
 stage.tar.xz
 stage.tar.xz.asc

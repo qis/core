@@ -1,0 +1,88 @@
+# Login
+gui-libs/greetd
+gui-apps/tuigreet
+
+# Graphics
+dev-util/hip
+dev-util/rocm-smi
+dev-util/vulkan-headers
+dev-util/vulkan-tools
+media-libs/vulkan-layers
+media-libs/vulkan-loader
+media-libs/mesa
+
+# Compositor
+gui-wm/hyprland
+gui-apps/hyprlock
+gui-apps/hyprpaper
+gui-libs/hyprcursor
+dev-libs/hyprgraphics
+dev-libs/hyprland-protocols
+dev-libs/hyprlang
+gui-libs/hyprutils
+dev-util/hyprwayland-scanner
+
+gui-wm/gamescope
+
+x11-apps/xprop
+x11-apps/xrandr
+x11-apps/xrdb
+x11-base/xwayland
+
+# Desktop
+gui-apps/grim
+gui-apps/slurp
+gui-apps/swaylock
+gui-apps/waybar
+gui-apps/wofi
+gui-apps/wl-clipboard
+
+# Portals
+sys-apps/xdg-desktop-portal
+sys-apps/xdg-desktop-portal-gtk
+gui-libs/xdg-desktop-portal-hyprland
+
+# Plugins
+dev-libs/atk
+net-misc/yt-dlp
+
+# Themes
+gui-libs/libadwaita
+x11-themes/adwaita-icon-theme
+
+# Fonts
+media-fonts/dejavu
+media-fonts/freefonts
+media-fonts/nerdfonts
+media-fonts/noto
+media-fonts/noto-emoji
+media-fonts/roboto
+media-fonts/twemoji
+
+# Audio
+media-sound/pavucontrol
+
+# Video
+media-video/gpu-screen-recorder
+media-video/mpv
+
+# Image
+media-gfx/imv
+
+# Tools
+gnome-base/dconf-editor
+gui-apps/qt6ct
+
+# Terminal
+gui-apps/foot
+
+# Applications
+sci-calculators/qalculate-gtk
+app-admin/keepassxc
+media-gfx/blender
+sys-apps/flatpak
+
+# Windows
+app-emulation/dxvk
+app-emulation/vkd3d-proton
+virtual/wine

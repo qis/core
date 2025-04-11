@@ -1,0 +1,5 @@
+[Match]
+Name=dock
+
+[Network]
+DHCP=yes

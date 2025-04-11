@@ -1,0 +1,297 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+if [ ! -f /usr/src/linux/.config ]; then
+  echo -e "${color_red}ERROR: Missing file: /usr/src/linux/.config${color_clr}"
+fi
+
+core_kernel_version="$(make -C /usr/src/linux -s kernelrelease)"
+core_kernel_install="$(cat /etc/kernel/entry-token)"
+
+if [ -z "${core_kernel_version}" ]; then
+  echo -e "${color_red}ERROR: Could not determine kernel version.${color_clr}"
+fi
+
+cd /usr/src/linux
+
+log "Configuring kernel ..."
+make oldconfig
+make menuconfig
+
+log "Building kernel in ${color_red}3${color_log} seconds ..."
+sleep 3
+make -j17
+
+log "Installing kernel modules ..."
+make modules_prepare
+make modules_install
+
+log "Selecting python version ..."
+cat /core/etc/portage/package.use/python > /etc/portage/package.use/python
+
+log "Rebuilding @world set ..."
+emerge -e @world
+
+log "Locking python version ..."
+cat /core/etc/portage/package.mask/python > /etc/portage/package.mask/python
+
+log "Uninstalling unnecessary packages ..."
+emerge -c
+
+log "Installing packages without circular dependencies ..."
+emerge -n1 net-misc/curl media-libs/freetype media-libs/tiff
+
+log "Adding guru repository ..."
+emerge -n1 app-eselect/eselect-repository
+eselect repository enable guru
+
+log "Synchronizing guru repository ..."
+emaint sync -r guru
+
+log "Creating sets directory ..."
+mkdir -p /etc/portage/sets
+
+log "Creating @core set ..."
+cat /core/etc/portage/package.accept_keywords/core > /etc/portage/package.accept_keywords/core
+cat /core/etc/portage/package.mask/core > /etc/portage/package.mask/core
+cat /core/etc/portage/package.use/core > /etc/portage/package.use/core
+cat /core/etc/portage/sets/core > /etc/portage/sets/core
+
+log "Updating @world set ..."
+emerge -uUD @world
+
+log "Installing @core set ..."
+emerge -n @core
+emerge -c
+
+log "Creating @llvm set ..."
+cat /core/etc/portage/profile/package.use.force/llvm > /etc/portage/profile/package.use.force/llvm
+cat /core/etc/portage/package.mask/llvm > /etc/portage/package.mask/llvm
+cat /core/etc/portage/package.use/llvm > /etc/portage/package.use/llvm
+cat /core/etc/portage/sets/llvm > /etc/portage/sets/llvm
+
+log "Updating @world set ..."
+emerge -uUD @world
+
+log "Installing @llvm set ..."
+emerge -n @llvm
+emerge -c
+
+log "Creating machine ID ..."
+systemd-machine-id-setup
+
+if [ "x${1}" = "xboot" ]; then
+log "Remounting NVRAM variables (efivars) with read/write access ..."
+mount -o remount,rw /sys/firmware/efi/efivars
+
+log "Installing systemd-boot to ESP ..."
+bootctl install
+
+log "Configuring systemd-boot loader ..."
+tee /boot/loader/loader.conf >/dev/null <<'EOF'
+timeout 3
+default @saved
+console-mode keep
+auto-firmware false
+auto-entries true
+editor false
+beep false
+EOF
+fi
+
+log "Configuring installkernel(8) ..."
+cat /core/etc/kernel/entry-token > /etc/kernel/entry-token
+cat /core/etc/kernel/install.conf > /etc/kernel/install.conf
+
+log "Installing kernel ..."
+make install
+
+log "Deleting systemd-boot loader entry ..."
+rm /boot/loader/entries/gentoo-${core_kernel_version}-gentoo.conf
+
+if [ "x${1}" = "xboot" ]; then
+log "Creating systemd-boot loader entry ..."
+tee /boot/loader/entries/linux.conf >/dev/null <<EOF
+title Linux
+linux  /gentoo/${core_kernel_version}-gentoo/linux
+initrd /gentoo/${core_kernel_version}-gentoo/microcode-amd
+initrd /gentoo/${core_kernel_version}-gentoo/initrd
+options root=system/root ro acpi_enforce_resources=lax net.ifnames=0 quiet
+options ifname=dock:XX:XX:XX:XX:XX:XX
+options ifname=wlan:XX:XX:XX:XX:XX:XX
+EOF
+fi
+
+log "Rebuilding external kernel modules ..."
+emerge @module-rebuild
+
+log "Configuring dracut(8) ..."
+cat /core/etc/dracut.conf > /etc/dracut.conf
+
+log "Generating initial RAM filesystem RAM disk ..."
+env --chdir=/boot dracut --force --kver "${core_kernel_version}" \
+  "${core_kernel_install}/${core_kernel_version}/initrd"
+
+log "Copying kernel config to boot directory ..."
+cat .config > /boot/${core_kernel_install}/${core_kernel_version}/config
+
+log "Enabling filesystem services ..."
+systemctl enable zfs.target
+systemctl enable zfs-import-cache
+systemctl enable zfs-mount
+systemctl enable zfs-import.target
+
+log "Configuring time zone ..."
+ln -snf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+
+log "Configuring time synchronization ..."
+mkdir -p /etc/systemd/timesyncd.conf.d
+cat /core/etc/systemd/timesyncd.conf.d/vniiftri.conf > /etc/systemd/timesyncd.conf.d/vniiftri.conf
+
+log "Configuring power button and lid switch ..."
+cat /core/etc/systemd/logind.conf > /etc/systemd/logind.conf
+
+log "Configuring thinkpad services ..."
+mkdir -p /etc/modprobe.d
+cat /core/etc/modprobe.d/thinkpad.conf > /etc/modprobe.d/thinkpad.conf
+cat /core/etc/thinkfan.conf > /etc/thinkfan.conf
+
+log "Configuring virtual memory ..."
+mkdir -p /etc/sysctl.d
+cat /core/etc/sysctl.d/vm.conf > /etc/sysctl.d/vm.conf
+
+log "Configuring console font ..."
+cat /core/etc/vconsole.conf > /etc/vconsole.conf
+
+log "Configuring pipewire ..."
+mkdir -p /etc/pipewire
+cat /usr/share/pipewire/pipewire.conf > /etc/pipewire/pipewire.conf
+cat /core/etc/security/limits.d/50-pw-memlock.conf > /etc/security/limits.d/50-pw-memlock.conf
+
+log "Configuring user lockout ..."
+cat /core/etc/security/faillock.conf > /etc/security/faillock.conf
+
+log "Configuring user desktop runtime directory ..."
+cat /core/etc/profile.d/xdg.sh > /etc/profile.d/xdg.sh
+
+log "Configuring shell ..."
+cat /core/etc/bash/bashrc.d/99-core.bash > /etc/bash/bashrc.d/99-core.bash
+
+log "Configuring terminal multiplexer ..."
+cat /core/etc/tmux.conf > /etc/tmux.conf
+
+log "Configuring editor ..."
+mkdir -p /etc/helix /root/.config
+ln -snf /etc/helix /root/.config/helix
+cat /core/etc/helix/config.toml > /etc/helix/config.toml
+cat /core/etc/helix/languages.toml > /etc/helix/languages.toml
+cat /core/etc/env.d/99editor > /etc/env.d/99editor
+
+log "Creating editor symlink ..."
+ln -snf hx /usr/bin/vi
+
+log "Creating audio mixer symlink ..."
+ln -snf ncpamixer /usr/bin/mixer
+
+log "Creating sixel image viewer symlink ..."
+ln -snf chafa /usr/bin/view
+
+log "Enabling system services ..."
+systemctl enable sshd
+systemctl enable seatd
+systemctl enable dhcpcd
+systemctl enable systemd-networkd
+systemctl enable systemd-resolved
+systemctl enable systemd-timesyncd
+systemctl enable thinkfan
+
+log "Configuring dock network interface ..."
+cat /core/etc/systemd/network/dock.network > /etc/systemd/network/dock.network
+
+log "Configuring wlan network interface ..."
+cat /core/etc/systemd/network/wlan.network > /etc/systemd/network/wlan.network
+
+cat /core/etc/wpa_supplicant/wpa_supplicant-wlan.conf > /etc/wpa_supplicant/wpa_supplicant-wlan.conf
+chmod 0640 /etc/wpa_supplicant/wpa_supplicant-wlan.conf
+
+cat /core/lib/systemd/system-sleep/wifi.sh > /lib/systemd/system-sleep/wifi.sh
+chmod +x /lib/systemd/system-sleep/wifi.sh
+
+hx /etc/wpa_supplicant/wpa_supplicant-wlan.conf
+
+log "Enabling wpa_supplicant@wlan service ..."
+systemctl enable wpa_supplicant@wlan
+
+log "Configuring git ..."
+git config --global core.eol lf
+git config --global core.autocrlf false
+git config --global core.filemode false
+git config --global pull.rebase false
+
+log "Adding user ${color_red}qis${color_clr} ..."
+useradd -m -G users,seat,wheel,rtkit,kvm,usb,audio,video,input,pipewire -s /bin/bash qis
+chown -R qis:qis /home/qis
+passwd qis
+
+log "Configuring sudo ..."
+EDITOR=tee visudo >/dev/null <<'EOF'
+Defaults env_keep += "LANG LANGUAGE LINGUAS LC_* MM_CHARSET _XKB_CHARSET"
+Defaults env_keep += "EDITOR PAGER LS_COLORS TERM TMUX SESSION USERPROFILE"
+
+root  ALL=(ALL:ALL) ALL
+qis   ALL=(ALL:ALL) NOPASSWD: ALL
+
+@includedir /etc/sudoers.d
+EOF
+
+log "Creating home directory mount script ..."
+tee /sbin/mount-zfs-home >/dev/null <<'EOF'
+#!/bin/bash
+set -eu
+
+# Receive password via stdin.
+PASS=$(cat -)
+
+# List the "local" value of the "canmount" property for each zfs dataset.
+zfs get canmount -s local -H -o name,value | while read line; do
+  # Filter on canmount == 'noauto'. Filesystems marked 'noauto'
+  # can be mounted, but is not done so automatically during boot.
+  canmount=$(echo $line | awk '{print $2}')
+  [[ $canmount = 'noauto' ]] || continue
+
+  # Filter on user property core.encrypt.automount:user.
+  # It should match the user that we are logging in as ($PAM_USER).
+  volname=$(echo $line | awk '{print $1}')
+  user=$(zfs get core.encrypt.automount:user -s local -H -o value $volname)
+  [[ $user = $PAM_USER ]] || continue
+
+  # Unlock and mount the volume.
+  zfs load-key "$volname" <<< "$PASS" || continue
+  zfs mount "$volname" && zfs mount "$volname/workspace" || true  # ignore erros
+done
+EOF
+
+chmod +x /sbin/mount-zfs-home
+
+echo "auth            optional        pam_exec.so expose_authtok /sbin/mount-zfs-home" >> /etc/pam.d/system-auth
+
+log "Setting home directory properties ..."
+zfs set core.encrypt.automount:user=qis system/home/qis
+
+log "Updating environment ..."
+env-update
+
+log "Execute the following commands:"
+echo
+echo '  source /etc/profile'
+echo '  export PS1="(chroot) ${PS1}"'
+echo

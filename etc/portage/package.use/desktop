@@ -1,0 +1,48 @@
+# Global
+*/* X flatpak wayland
+*/* egl opengl vulkan
+*/* gtk4 cairo pango
+
+# Graphics
+media-libs/vulkan-loader layers
+
+# Compositor
+gui-wm/hyprland -qtutils
+gui-wm/gamescope libei
+x11-base/xwayland libei
+
+# Plugins
+dev-libs/libdbusmenu gtk3
+sci-libs/libqalculate gnuplot
+
+# Toolkit
+dev-qt/* gui qml
+kde-frameworks/* qml
+
+# Desktop
+gui-apps/waybar network tray upower wifi
+
+# Fonts
+media-fonts/nerdfonts dejavusansmono liberationmono noto robotomono
+media-fonts/noto cjk
+
+# Audio
+media-video/pipewire -X
+
+# Video
+media-plugins/gst-plugins-meta http lame libass v4l
+media-video/mpv -X -egl -opengl -pulseaudio -vulkan
+
+# Camera
+media-libs/libv4l utils
+
+# Image
+media-gfx/imv -X
+
+# Applications
+media-gfx/blender -X alembic collada hip
+sys-apps/flatpak introspection
+
+# Windows
+app-emulation/wine-proton nls usb v4l xinerama
+virtual/wine proton

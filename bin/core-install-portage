@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+log "Creating /etc/portage/make.conf ..."
+cat /core/etc/portage/make.conf > /etc/portage/make.conf
+
+log "Creating /etc/portage/repos.conf ..."
+cat /usr/share/portage/config/repos.conf > /etc/portage/repos.conf
+
+log "Synchronizing portage in ${color_red}3${color_log} seconds ..."
+sleep 3
+emerge --sync

@@ -1,0 +1,8 @@
+# Audio
+media-sound/ncpamixer ~amd64
+
+# Camera
+media-video/v4l2loopback ~amd64
+
+# Monitor
+app-misc/brightnessctl ~amd64

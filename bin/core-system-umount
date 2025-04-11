@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+log "Restoring network settings ..."
+ln -snf /run/systemd/resolve/stub-resolv.conf /mnt/gentoo/etc/resolv.conf
+
+log "Deleting unwanted config and history files ..."
+rm -f /mnt/gentoo/{root,home/qis}/.{bashrc,bash_history,history,keep_acct-user_root-0,lesshst,wget-hsts}
+
+log "Unmounting filesystems ..."
+umount -l /mnt/gentoo/dev{/shm,/pts,}
+umount -R /mnt/gentoo

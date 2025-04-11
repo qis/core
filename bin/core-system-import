@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+log "Synchronizing time ..."
+chronyd -q "server ntp1.vniiftri.ru iburst"
+
+log "Enabling swap ..."
+swapon /dev/nvme0n1p2
+
+log "Loading ZFS kernel module ..."
+modprobe zfs
+sleep 1
+
+log "Mounting system root ..."
+zpool import -f -R /mnt/gentoo system
+
+log "Mounting system boot ..."
+mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
+
+log "Mounting virtual filesystems ..."
+mount --types proc /proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys
+mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev
+mount --make-rslave /mnt/gentoo/dev
+mount --bind /run /mnt/gentoo/run
+mount --make-slave /mnt/gentoo/run
+
+log "Copying network settings ..."
+cp -L /etc/resolv.conf /mnt/gentoo/etc/

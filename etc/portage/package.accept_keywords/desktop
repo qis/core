@@ -1,0 +1,43 @@
+# Login
+gui-apps/tuigreet ~amd64
+
+# Graphics
+dev-util/hip ~amd64
+dev-util/hipcc ~amd64
+dev-util/rocminfo ~amd64
+dev-util/rocm-smi ~amd64
+dev-libs/rocm-comgr ~amd64
+dev-libs/rocr-runtime ~amd64
+dev-libs/rocm-opencl-runtime ~amd64
+dev-libs/roct-thunk-interface ~amd64
+dev-libs/rocm-device-libs ~amd64
+dev-build/rocm-cmake ~amd64
+media-libs/vkroots ~amd64
+
+# Compositor
+dev-cpp/glaze ~amd64
+dev-cpp/sdbus-c++ ~amd64
+dev-libs/wayland-protocols ~amd64
+gui-libs/aquamarine ~amd64
+
+gui-wm/hyprland ~amd64
+gui-apps/hyprlock ~amd64
+gui-apps/hyprpaper ~amd64
+gui-libs/hyprcursor ~amd64
+dev-libs/hyprgraphics ~amd64
+dev-libs/hyprland-protocols ~amd64
+dev-libs/hyprlang ~amd64
+gui-libs/hyprutils ~amd64
+dev-util/hyprwayland-scanner ~amd64
+
+gui-wm/gamescope ~amd64
+
+# Portals
+gui-libs/xdg-desktop-portal-hyprland ~amd64
+
+# Fonts
+media-fonts/nerdfonts ~amd64
+media-fonts/twemoji ~amd64
+
+# Video
+media-video/gpu-screen-recorder **

@@ -1,0 +1,6 @@
+# Compiler
+<llvm-core/llvm-common-19
+>=llvm-core/llvm-common-20
+
+# Rust
+dev-lang/rust

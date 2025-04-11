@@ -1,0 +1,61 @@
+# Global
+*/* brotli lz4 lzma lzo
+*/* fontconfig harfbuzz truetype
+*/* avif gif heif jpeg jpeg2k jpegxl openexr png raw svg tiff webp
+*/* aac encode flac id3tag mad mp3 mp4 mpeg ogg opus speex theora vorbis x264 x265
+*/* -alsa -ao ffmpeg -jack -oss pipewire pulseaudio -sndio sound
+*/* apparmor policykit
+*/* opencl vaapi
+
+# Kernel
+sys-apps/systemd boot ukify
+sys-kernel/installkernel uki ukify
+sys-kernel/linux-firmware compress-zstd
+sys-kernel/gentoo-sources symlink
+
+# Compression
+app-arch/p7zip rar
+sys-libs/zlib minizip
+
+# Languages
+app-text/aspell nls L10N: en de ru
+
+# Libraries
+app-text/xmlto text
+dev-libs/boost context nls python tools
+dev-libs/glib mime
+
+# System
+sys-apps/coreutils nls
+sys-auth/seatd builtin server
+sys-libs/timezone-data leaps-timezone
+
+# Filesystem
+sys-fs/zfs rootfs
+
+# Wireless
+net-wireless/wpa_supplicant fasteap tkip wep wps
+
+# Audio
+media-libs/libcanberra -udev
+media-libs/libsndfile minimal
+media-plugins/alsa-plugins libsamplerate
+media-sound/sox amr encode ladspa sndfile twolame wavpack
+media-video/pipewire extra flatpak jack-sdk sound-server
+media-video/wireplumber LUA_SINGLE_TARGET: lua5-4
+
+# Video
+media-libs/mesa lm-sensors proprietary-codecs
+media-video/ffmpeg lame v4l vpx xvid
+
+# Image
+media-gfx/imagemagick corefonts cxx hdri lcms lqr openexr xml zip
+
+# Hardware
+sys-process/lsof rpc
+
+# Fonts
+media-fonts/terminus-font pcf-unicode
+
+# Tools
+dev-db/sqlite readline secure-delete tools

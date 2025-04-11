@@ -1,0 +1,123 @@
+theme = "dark_plus"
+
+[editor]
+mouse = true
+undercurl = true
+true-color = true
+default-line-ending = "lf"
+line-number = "relative"
+bufferline = "always"
+
+text-width = 125
+rulers = [ 125 ]
+
+# https://github.com/helix-editor/helix/pull/9143
+# persist-old-files = true
+# persist-commands = true
+# persist-search = true
+#
+# [editor.persistence]
+# all.enabled = true
+# all.max-entries = 1000
+# all.scope = "per-workspace"
+# autostart-splits = true
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false
+
+[editor.indent-guides]
+render = true
+character = "┊"  # "▏", "╎", "┆", "┊", "⸽"
+skip-levels = 1
+
+[editor.lsp]
+display-inlay-hints = false
+
+[editor.soft-wrap]
+enable = true
+max-wrap = 20
+max-indent-retain = 40
+wrap-at-text-width = false
+wrap-indicator = "↩ "
+
+[editor.statusline]
+left = ["mode", "spinner", "file-name", "read-only-indicator", "file-modification-indicator"]
+center = []
+right = ["diagnostics", "selections", "register", "position", "file-encoding"]
+separator = "│"
+mode.normal = "NORMAL"
+mode.insert = "INSERT"
+mode.select = "SELECT"
+
+[editor.whitespace.render]
+space = "none"
+tab = "all"
+nbsp = "all"
+nnbsp = "all"
+newline = "none"
+
+[editor.whitespace.characters]
+space = "·"
+tab = "→"
+nbsp = "⍽"
+nnbsp = "⍽"
+newline = "⏎"
+tabpad = "·"
+
+[keys.normal]
+ins = "insert_mode"
+esc = [ "collapse_selection", "keep_primary_selection" ]
+
+p = "paste_clipboard_after"
+P = "paste_clipboard_before"
+#y = "yank_to_clipboard"
+#Y = "yank_joined_to_clipboard"
+R = "replace_selections_with_clipboard"
+#d = [ "yank_to_clipboard", "delete_selection_noyank" ]
+
+#p = "paste_primary_clipboard_after"
+#P = "paste_primary_clipboard_before"
+#y = "yank_to_primary_clipboard"
+#Y = "yank_joined_to_primary_clipboard"
+#R = "replace_selections_with_primary_clipboard"
+#d = [ "yank_to_primary_clipboard", "delete_selection_noyank" ]
+
+y = [ "yank_to_clipboard", "yank_to_primary_clipboard" ]
+Y = [ "yank_joined_to_clipboard", "yank_joined_to_primary_clipboard" ]
+d = [ "yank_to_clipboard", "yank_to_primary_clipboard", "delete_selection_noyank" ]
+
+A-left = ":buffer-previous"
+A-right = ":buffer-next"
+
+[keys.insert]
+ins = "normal_mode"
+
+C-v = "paste_clipboard_before"
+#C-v = "paste_primary_clipboard_before"
+
+A-left = ":buffer-previous"
+A-right = ":buffer-next"
+
+[keys.select]
+p = "paste_clipboard_after"
+P = "paste_clipboard_before"
+#y = "yank_to_clipboard"
+#Y = "yank_joined_to_clipboard"
+R = "replace_selections_with_clipboard"
+#d = [ "yank_to_clipboard", "delete_selection_noyank" ]
+
+#p = "paste_primary_clipboard_after"
+#P = "paste_primary_clipboard_before"
+#y = "yank_to_primary_clipboard"
+#Y = "yank_joined_to_primary_clipboard"
+#R = "replace_selections_with_primary_clipboard"
+#d = [ "yank_to_primary_clipboard", "delete_selection_noyank" ]
+
+y = [ "yank_to_clipboard", "yank_to_primary_clipboard" ]
+Y = [ "yank_joined_to_clipboard", "yank_joined_to_primary_clipboard" ]
+d = [ "yank_to_clipboard", "yank_to_primary_clipboard", "delete_selection_noyank" ]

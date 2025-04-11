@@ -1,9 +1,0 @@
-# Audio
-media-sound/pulseaudio
-media-sound/pulseaudio-daemon
-media-sound/jack2
-
-# Toolkits
-dev-python/pyqt5
-dev-qt/qtwebengine
-gui-libs/gtk

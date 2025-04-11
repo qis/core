@@ -1,0 +1,9 @@
+# Scripting
+<dev-lang/lua-5.4
+
+# Development
+dev-lang/go
+dev-java/*
+
+# Editor
+app-editors/vim
