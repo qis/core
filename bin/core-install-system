@@ -20,7 +20,7 @@ cd /usr/src/linux
 make oldconfig
 
 core_kernel_version="$(make -s kernelrelease)"
-core_kernel_install="$(cat /etc/kernel/entry-token)"
+core_kernel_install="$(cat /core/etc/kernel/entry-token)"
 
 if [ -z "${core_kernel_version}" ]; then
   echo -e "${color_red}ERROR: Could not determine kernel version.${color_clr}"
