@@ -26,6 +26,13 @@ zpool import -f -R /mnt/gentoo system
 log "Mounting system boot ..."
 mount -o defaults,noatime /dev/nvme0n1p1 /mnt/gentoo/boot
 
+log "Loading ${color_red}system/home/qis${color_log} keys ..."
+zfs load-key -r system/home/qis
+
+log "Mounting ${color_red}system/home/qis${color_log} directories ..."
+zfs mount system/home/qis
+zfs mount system/home/qis/workspace
+
 log "Mounting virtual filesystems ..."
 mount --types proc /proc /mnt/gentoo/proc
 mount --rbind /sys /mnt/gentoo/sys

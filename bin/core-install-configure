@@ -10,6 +10,38 @@ log() {
   echo -e "${color_log}${*}${color_clr}" 1>&2
 }
 
+if [ $(id -u) -ne 0 ]; then
+  log "Updating fonts cache ..."
+  fc-cache
+
+  log "Configuring desktop directories ..."
+  xdg-user-dirs-update --set DOWNLOAD    ~/downloads
+  xdg-user-dirs-update --set DOCUMENTS   ~/documents
+  xdg-user-dirs-update --set MUSIC       ~/documents/music
+  xdg-user-dirs-update --set PICTURES    ~/documents/image
+  xdg-user-dirs-update --set VIDEOS      ~/documents/video
+  xdg-user-dirs-update --set DESKTOP     ~/.local/desktop
+  xdg-user-dirs-update --set PUBLICSHARE ~/.local/public
+  xdg-user-dirs-update --set TEMPLATES   ~/.local/templates
+
+  log "Creating missing desktop directories ..."
+  mkdir -p $(xdg-user-dir RUNTIME)
+  mkdir -p $(xdg-user-dir DOWNLOAD)
+  mkdir -p $(xdg-user-dir DOCUMENTS)
+  mkdir -p $(xdg-user-dir MUSIC)
+  mkdir -p $(xdg-user-dir PICTURES)
+  mkdir -p $(xdg-user-dir VIDEOS)
+  mkdir -p $(xdg-user-dir DESKTOP)
+  mkdir -p $(xdg-user-dir PUBLICSHARE)
+  mkdir -p $(xdg-user-dir TEMPLATES)
+
+  log "Enabling pipewire services ..."
+  systemctl --user enable --now pipewire pipewire-pulse wireplumber
+  systemctl --user status pipewire pipewire-pulse wireplumber
+
+  exit 0
+fi
+
 core_kernel_version="$(make -C /usr/src/linux -s kernelrelease)"
 core_kernel_install="$(cat /etc/kernel/entry-token)"
 

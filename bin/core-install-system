@@ -114,16 +114,16 @@ cat /core/etc/kernel/install.conf > /etc/kernel/install.conf
 log "Installing kernel ..."
 make install
 
-log "Deleting systemd-boot loader entry ..."
-rm /boot/loader/entries/gentoo-${core_kernel_version}.conf
+log "Removing auto-generated systemd-boot loader entry ..."
+rm /boot/loader/entries/${core_kernel_install}-${core_kernel_version}.conf
 
 if [ "x${1}" = "xboot" ]; then
 log "Creating systemd-boot loader entry ..."
 tee /boot/loader/entries/linux.conf >/dev/null <<EOF
 title Linux
-linux  /gentoo/${core_kernel_version}-gentoo/linux
-initrd /gentoo/${core_kernel_version}-gentoo/microcode-amd
-initrd /gentoo/${core_kernel_version}-gentoo/initrd
+linux  /${core_kernel_install}/${core_kernel_version}/linux
+initrd /${core_kernel_install}/${core_kernel_version}/microcode-amd
+initrd /${core_kernel_install}/${core_kernel_version}/initrd
 options root=system/root ro acpi_enforce_resources=lax net.ifnames=0 quiet
 EOF
 if ip link show dev dock >/dev/null 2>&1; then
@@ -144,7 +144,7 @@ emerge @module-rebuild
 log "Configuring dracut(8) ..."
 cat /core/etc/dracut.conf > /etc/dracut.conf
 
-log "Generating initial RAM filesystem RAM disk ..."
+log "Generating initial kernel RAM disk filesystem ..."
 env --chdir=/boot dracut --force --kver "${core_kernel_version}" \
   "${core_kernel_install}/${core_kernel_version}/initrd"
 
