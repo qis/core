@@ -29,15 +29,17 @@ log "Loading ZFS kernel module ..."
 modprobe zfs
 sleep 1
 
-log "Creating system root ..."
+log "Creating ${color_red}system${color_log} datasets ..."
 zpool create -f -o ashift=12 -o cachefile= -O compression=lz4 -O atime=off -m none -R /mnt/gentoo system /dev/nvme0n1p3
 zfs create -o mountpoint=/ system/root
-zfs create -o mountpoint=/home system/home
-zfs create -o mountpoint=/home/qis -o encryption=aes-256-gcm -o keyformat=passphrase -o keylocation=prompt system/home/qis
-zfs create -o mountpoint=/home/qis/workspace -o compression=off -o encryption=off system/home/qis/workspace
 zfs create -o mountpoint=/var system/var
 zfs create -o mountpoint=/var/tmp -o acltype=posixacl -o compression=off -o sync=disabled system/var/tmp
 zfs create -o mountpoint=/tmp -o acltype=posixacl -o compression=off -o sync=disabled system/tmp
+zfs create -o mountpoint=/home system/home
+
+log "Creating ${color_red}system/home/qis${color_log} datasets ..."
+zfs create -o mountpoint=/home/qis -o encryption=aes-256-gcm -o keyformat=passphrase -o keylocation=prompt system/home/qis
+zfs create -o mountpoint=/home/qis/workspace -o compression=off -o encryption=off system/home/qis/workspace
 
 log "Setting qis directories mount options ..."
 zfs set canmount=noauto system/home/qis
