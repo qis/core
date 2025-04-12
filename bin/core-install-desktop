@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+log "Creating @desktop set ..."
+cat /core/etc/portage/package.accept_keywords/desktop > /etc/portage/package.accept_keywords/desktop
+cat /core/etc/portage/package.mask/desktop > /etc/portage/package.mask/desktop
+cat /core/etc/portage/package.use/desktop > /etc/portage/package.use/desktop
+cat /core/etc/portage/sets/desktop > /etc/portage/sets/desktop
+
+log "Updating @world set ..."
+emerge -uUD @world
+
+log "Installing @desktop set ..."
+emerge -n @desktop
+emerge -c

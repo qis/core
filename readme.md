@@ -189,9 +189,9 @@ emerge -pe @world | grep dev-lang/python
 
 # Install VMWare guest tools.
 # emerge -avn app-emulation/open-vm-tools
-# systemctl enable vmtoolsd
-# systemctl disable thinkfan
 # systemctl disable wpa_supplicant@wlan
+# systemctl disable thinkfan
+# systemctl enable vmtoolsd
 
 # Merge config changes.
 # Press 'q' to quit pager.
@@ -265,20 +265,8 @@ sudo reboot
 Install and configure desktop packages.
 
 ```sh
-# Log in as root.
-sudo su -
-
-# Create @desktop set.
-cat ~/core/etc/portage/profile/package.use.force/desktop > /etc/portage/profile/package.use.force/desktop
-cat ~/core/etc/portage/package.accept_keywords/desktop > /etc/portage/package.accept_keywords/desktop
-cat ~/core/etc/portage/package.mask/desktop > /etc/portage/package.mask/desktop
-cat ~/core/etc/portage/package.use/desktop > /etc/portage/package.use/desktop
-cat ~/core/etc/portage/sets/desktop > /etc/portage/sets/desktop
-
-# Update @world and install @desktop set.
-emerge -auUD @world
-emerge -avn @desktop
-emerge -ac
+# Install desktop.
+sudo /core/bin/core-install-desktop
 
 # Configure GTK theme.
 mkdir -p /etc/gtk-3.0; tee /etc/gtk-3.0/settings.ini >/dev/null <<'EOF'
