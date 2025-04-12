@@ -60,6 +60,11 @@ cp -L /etc/zfs/zpool.cache /mnt/gentoo/etc/zfs/
 log "Restoring backup ..."
 tar xpf /mnt/backup/qis.tar.xz --numeric-owner -C /mnt/gentoo/home/qis
 
+if [ -f /mnt/backup/wpa_supplicant-wlan.conf ]; then
+  log "Copy Wi-Fi settings ..."
+  cat /mnt/backup/wpa_supplicant-wlan.conf > /root/wpa_supplicant-wlan.conf
+fi
+
 log "Mounting virtual filesystems ..."
 mount --types proc /proc /mnt/gentoo/proc
 mount --rbind /sys /mnt/gentoo/sys

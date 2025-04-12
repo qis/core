@@ -227,7 +227,11 @@ cat /core/etc/systemd/network/dock.network > /etc/systemd/network/dock.network
 log "Configuring wlan network interface ..."
 cat /core/etc/systemd/network/wlan.network > /etc/systemd/network/wlan.network
 
-cat /core/etc/wpa_supplicant/wpa_supplicant-wlan.conf > /etc/wpa_supplicant/wpa_supplicant-wlan.conf
+if [ -f /root/wpa_supplicant-wlan.conf ]; then
+  cat /root/wpa_supplicant-wlan.conf > /etc/wpa_supplicant/wpa_supplicant-wlan.conf
+else
+  cat /core/etc/wpa_supplicant/wpa_supplicant-wlan.conf > /etc/wpa_supplicant/wpa_supplicant-wlan.conf
+fi
 chmod 0640 /etc/wpa_supplicant/wpa_supplicant-wlan.conf
 
 cat /core/lib/systemd/system-sleep/wifi.sh > /lib/systemd/system-sleep/wifi.sh

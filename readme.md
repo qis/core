@@ -73,6 +73,9 @@ sudo cp /tmp/qis.tar.xz /mnt/backup/qis.tar.xz
 env --chdir=/tmp sha512sum qis.tar.xz | sudo tee /mnt/backup/qis.tar.xz.sha512 >/dev/null
 env --chdir=/mnt/backup sha512sum -c qis.tar.xz.sha512
 
+# Copy Wi-Fi settings (if applicable).
+cat /etc/wpa_supplicant/wpa_supplicant-wlan.conf > /mnt/backup/wpa_supplicant-wlan.conf
+
 # Clone this repository.
 sudo git clone https://github.com/qis/core /mnt/backup/core
 
