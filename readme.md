@@ -254,17 +254,11 @@ systemctl --user enable --now pipewire pipewire-pulse wireplumber
 # Verify pipewire services status.
 systemctl --user status pipewire pipewire-pulse wireplumber
 
-# Log in as root.
-sudo su -
-
 # Configure system.
-/core/bin/core-install-configure
-
-# Load profile.
-source /etc/profile
+sudo /core/bin/core-install-configure
 
 # Reboot system.
-reboot
+sudo reboot
 ```
 
 ## Desktop
