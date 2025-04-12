@@ -17,10 +17,13 @@ Download [admin][admin] image and [stage][stage] archive.
 [stage]: https://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-nomultilib-systemd/
 
 ```sh
-# Set mirror.
-export HTTPS="https://distfiles.gentoo.org/releases/amd64/autobuilds"
-export STAGE="${HTTPS}/current-stage3-amd64-nomultilib-systemd"
-export ADMIN="${HTTPS}/current-admincd-amd64"
+# Log in as root.
+sudo su -
+
+# Set mirror and paths.
+HTTPS="https://distfiles.gentoo.org/releases/amd64/autobuilds"
+STAGE="${HTTPS}/current-stage3-amd64-nomultilib-systemd"
+ADMIN="${HTTPS}/current-admincd-amd64"
 
 # Download image.
 wget "${ADMIN}/admincd-amd64-20250302T170343Z.iso" -O admin.iso
@@ -40,11 +43,11 @@ gpg --homedir gnupg --verify admin.iso.asc
 gpg --homedir gnupg --verify stage.tar.xz.asc
 
 # Create installation media.
-sudo dd if=admin.iso of=/dev/sda bs=4M
-sudo head -c $(du -b admin.iso | cut -f -1) /dev/sda | gpg --homedir gnupg --verify admin.iso.asc -
+dd if=admin.iso of=/dev/sda bs=4M
+head -c $(du -b admin.iso | cut -f -1) /dev/sda | gpg --homedir gnupg --verify admin.iso.asc -
 
 # Add backup partition.
-sudo parted -a optimal /dev/sda
+parted -a optimal /dev/sda
 ```
 
 ```
@@ -57,33 +60,34 @@ quit
 
 ```sh
 # Format backup partition.
-sudo mkfs.exfat -L "Backup" /dev/sda5
+mkfs.exfat -L "Backup" /dev/sda5
 
 # Mount backup partition.
-sudo mkdir -p /mnt/backup
-sudo mount /dev/sda5 /mnt/backup
+mkdir -p /mnt/backup
+mount /dev/sda5 /mnt/backup
 
 # Copy stage file.
-sudo cp -R gnupg stage.tar.xz stage.tar.xz.asc /mnt/backup/
+cp -R gnupg stage.tar.xz stage.tar.xz.asc /mnt/backup/
 env --chdir=/mnt/backup gpg --homedir gnupg --verify stage.tar.xz.asc
 
 # Create backup.
 env --chdir=/home/qis tar cpJf /tmp/qis.tar.xz --numeric-owner .
-sudo cp /tmp/qis.tar.xz /mnt/backup/qis.tar.xz
-env --chdir=/tmp sha512sum qis.tar.xz | sudo tee /mnt/backup/qis.tar.xz.sha512 >/dev/null
+cp /tmp/qis.tar.xz /mnt/backup/qis.tar.xz
+env --chdir=/tmp sha512sum qis.tar.xz > /mnt/backup/qis.tar.xz.sha512
 env --chdir=/mnt/backup sha512sum -c qis.tar.xz.sha512
+wipe -zf /tmp/qis.tar.xz
 
 # Copy Wi-Fi settings (if applicable).
 cat /etc/wpa_supplicant/wpa_supplicant-wlan.conf > /mnt/backup/wpa_supplicant-wlan.conf
 
 # Clone this repository.
-sudo git clone https://github.com/qis/core /mnt/backup/core
+git clone https://github.com/qis/core /mnt/backup/core
 
 # Unmount backup partition.
-sudo umount /mnt/backup
+umount /mnt/backup
 
 # Eject installation media.
-sudo eject /dev/sda
+eject /dev/sda
 ```
 
 Boot from the memory stick.
