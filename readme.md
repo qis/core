@@ -204,29 +204,14 @@ passwd
 exit
 
 # Unmount filesystems.
-/core/bin/core-system-umount
+/mnt/backup/core/bin/core-system-umount
+
+# Unmount backup partition.
+umount /mnt/backup
 
 # Halt system and remove installation media.
 halt -p
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 Configure system.
 
