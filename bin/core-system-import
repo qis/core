@@ -43,4 +43,5 @@ mount --bind /run /mnt/gentoo/run
 mount --make-slave /mnt/gentoo/run
 
 log "Copying network settings ..."
+rm -f /mnt/gentoo/etc/resolv.conf
 cp -L /etc/resolv.conf /mnt/gentoo/etc/
