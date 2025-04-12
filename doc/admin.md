@@ -68,11 +68,8 @@ mount -t zfs system/home/qis@<date> /mnt
 Update system.
 
 ```sh
-# Mount boot partition.
+# Mount boot filesystem.
 mount /boot
-
-# Backup boot partition.
-tar cvJf /var/boot-`date '+%F'`.tar.xz -C / boot
 
 # List snapshots.
 zfs list -t snapshot
@@ -101,37 +98,16 @@ eselect kernel set linux-X.YY.ZZ-gentoo
 eselect kernel show
 readlink /usr/src/linux
 
+# Create loader entry.
+cp /boot/loader/entries/linux.conf /boot/loader/entries/linux-test.conf
+hx /boot/loader/entries/linux-test.conf
+
 # Configure kernel.
 modprobe configs
 gzip -dc /proc/config.gz > /usr/src/linux/.config
 
-# Build and install kernel.
+# Install kernel.
 /core/kernel.sh
-
-
-
-
-
-
-
-
-
-cd /usr/src/linux
-make oldconfig
-make menuconfig
-
-# Build and install kernel.
-make -j17
-make modules_prepare
-make modules_install
-make install
-
-# Rebuild kernel modules.
-emerge -av @module-rebuild
-
-# Generate kernel initarmfs.
-bliss-initramfs -k X.YY.ZZ-gentoo
-mv initrd-X.YY.ZZ-gentoo /boot/
 
 # Reboot system.
 reboot
@@ -140,22 +116,21 @@ reboot
 uname -r
 
 # Uninstall old kernel sources.
-emerge -W =sys-kernel/gentoo-sources-6.1.31
+emerge -W =sys-kernel/gentoo-sources-6.12.21
 emerge -ac
 
 # Remove old kernel binaries.
-rm -f /boot/*-6.1.31-*
+rm -rf /boot/gentoo/6.12.21-gentoo
 
 # Remove old kernel modules.
-rm -rf /lib/modules/6.1.31-gentoo
+rm -rf /lib/modules/6.12.21-gentoo
 
 # Delete old kernel sources.
-rm -rf /usr/src/linux-6.1.31-gentoo
+rm -rf /usr/src/linux-6.12.21-gentoo
 
-# Update GRUB config.
-grub-mkconfig -o /boot/grub/grub.cfg
-sed 's; root=ZFS=[^ ]*; root=system/root;' -i /boot/grub/grub.cfg
-grep vmlinuz /boot/grub/grub.cfg
+# Update loader entry.
+mv /boot/loader/entries/linux-test.conf /boot/loader/entries/linux.conf
+hx /boot/loader/entries/linux.conf
 
 # Reboot system.
 reboot

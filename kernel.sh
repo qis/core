@@ -76,9 +76,8 @@ env --chdir=/boot dracut --force --kver "${core_kernel_version}" \
 
 core_kernel_backup="/var/kernel/$(date +'%Y-%m-%d-%H%M%S').tar.xz"
 log "Creating backup in ${color_red}${core_kernel_backup}${color_log} ..."
-mkdir -p /var/kernel
-tar cpJf "${core_kernel_backup}" \
-  /boot/loader/entries/linux.conf \
-  /boot/${core_kernel_install}/${core_kernel_version} \
-  /lib/modules/${core_kernel_version} \
-  /usr/src/linux/.config
+mkdir -p /var/kernel; env --chdir=/ tar cpJf "${core_kernel_backup}" \
+  boot/loader/entries/linux.conf \
+  boot/${core_kernel_install}/${core_kernel_version} \
+  lib/modules/${core_kernel_version} \
+  usr/src/linux/.config
