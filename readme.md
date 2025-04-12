@@ -168,6 +168,7 @@ eselect news read
 emerge -s '^sys-kernel/gentoo-sources$'
 
 # Install kernel sources.
+# TODO: Test upgrade with 6.12.16.
 /core/bin/core-install-kernel 6.12.21
 
 # Copy kernel config.
@@ -176,11 +177,6 @@ cat /core/config > /usr/src/linux/.config
 # Build kernel and system.
 # NOTE: Skip the "boot" parameter if systemd-boot was already installed to the boot filesystem.
 # NOTE: Kernel 6.13 CONFIG_PREEMPT_LAZY might improve audio performance.
-# TODO: Append ".zst" to all amdgpu filenames in CONFIG_EXTRA_FIRMWARE.
-# TODO: Enable MEDIA_TEST_SUPPORT and V4L_TEST_DRIVERS.
-# * CONFIG_X86_IOPL_IOPERM is not set when it should be.
-# * Please check to make sure these options are set correctly.
-# * Failure to do so may cause unexpected problems.
 /core/bin/core-install-system boot
 
 # Load profile.
