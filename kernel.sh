@@ -30,8 +30,10 @@ fi
 log "Entering kernel sources directory ..."
 cd /usr/src/linux
 
-log "Updating kernel config ..."
-make oldconfig
+if [ "x${1}" = "xupdate" ]; then
+  log "Updating kernel config ..."
+  make oldconfig
+fi
 
 core_kernel_install="$(cat /etc/kernel/entry-token)"
 if [ -z "${core_kernel_install}" ]; then

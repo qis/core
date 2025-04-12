@@ -165,14 +165,10 @@ export PS1="(chroot) ${PS1}"
 # Add "lavapipe vmware" to the "VIDEO_CARDS" variable in /etc/portage/make.conf for VMWare guests.
 /core/bin/core-install-portage
 
-# Read portage news.
-eselect news read
-
 # Select kernel version.
 emerge -s '^sys-kernel/gentoo-sources$'
 
 # Install kernel sources.
-# TODO: Test upgrade with 6.12.16.
 /core/bin/core-install-kernel 6.12.21
 
 # Copy kernel config.

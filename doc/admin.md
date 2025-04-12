@@ -107,7 +107,7 @@ modprobe configs
 gzip -dc /proc/config.gz > /usr/src/linux/.config
 
 # Install kernel.
-/core/kernel.sh
+/core/kernel.sh update
 
 # Reboot system.
 reboot
