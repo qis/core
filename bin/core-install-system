@@ -115,7 +115,7 @@ log "Installing kernel ..."
 make install
 
 log "Deleting systemd-boot loader entry ..."
-rm /boot/loader/entries/gentoo-${core_kernel_version}-gentoo.conf
+rm /boot/loader/entries/gentoo-${core_kernel_version}.conf
 
 if [ "x${1}" = "xboot" ]; then
 log "Creating systemd-boot loader entry ..."
