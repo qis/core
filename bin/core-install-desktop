@@ -22,3 +22,40 @@ emerge -uUD @world
 log "Installing @desktop set ..."
 emerge -n @desktop
 emerge -c
+
+log "Configuring GTK 3 ..."
+mkdir -p /etc/gtk-3.0
+cat /core/etc/gtk-3.0/settings.ini > /etc/gtk-3.0/settings.ini
+
+log "Configuring GTK 4 ..."
+mkdir -p /etc/gtk-4.0
+cat /core/etc/gtk-4.0/settings.ini > /etc/gtk-4.0/settings.ini
+
+log "Configuring display manager ..."
+mkdir -p /etc/greetd
+cat /core/etc/greetd/config.toml > /etc/greetd/config.toml
+touch /var/log/hyprland.log
+chown root:video /var/log/hyprland.log
+chmod 0664 /var/log/hyprland.log
+
+log "Enabling display manager service ..."
+systemctl enable greetd
+
+log "Configuring flatpak ..."
+flatpak config --system --set languages en
+flatpak config --system
+
+log "Configuring flatpak overrides ..."
+flatpak override --system --socket=wayland
+flatpak override --system --filesystem=/etc/gtk-3.0:ro
+flatpak override --system --filesystem=/etc/gtk-4.0:ro
+flatpak override --system --show
+
+log "Updating environment ..."
+env-update
+
+log "Execute the following commands:"
+echo
+echo '  source /etc/profile'
+echo '  export PS1="(chroot) ${PS1}"'
+echo

@@ -1,0 +1,6 @@
+[terminal]
+vt = 7
+
+[default_session]
+user = "greetd"
+command = "tuigreet -w 24 -r -c 'dbus-run-session Hyprland >/var/log/hyprland.log 2>&1' --asterisks --theme 'action=black;border=black;prompt=green' --kb-command 13 --kb-sessions 14"

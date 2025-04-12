@@ -178,6 +178,9 @@ cat /core/config > /usr/src/linux/.config
 # NOTE: Kernel 6.13 CONFIG_PREEMPT_LAZY might improve audio performance.
 # TODO: Append ".zst" to all amdgpu filenames in CONFIG_EXTRA_FIRMWARE.
 # TODO: Enable MEDIA_TEST_SUPPORT and V4L_TEST_DRIVERS.
+# * CONFIG_X86_IOPL_IOPERM is not set when it should be.
+# * Please check to make sure these options are set correctly.
+# * Failure to do so may cause unexpected problems.
 /core/bin/core-install-system boot
 
 # Load profile.
@@ -270,48 +273,6 @@ Install and configure desktop packages.
 ```sh
 # Install desktop.
 sudo /core/bin/core-install-desktop
-
-# Configure GTK theme.
-mkdir -p /etc/gtk-3.0; tee /etc/gtk-3.0/settings.ini >/dev/null <<'EOF'
-[Settings]
-gtk-theme-name = Adwaita
-gtk-icon-theme-name = Adwaita
-gtk-cursor-theme-name = Adwaita
-gtk-application-prefer-dark-theme = true
-EOF
-
-mkdir -p /etc/gtk-4.0; tee /etc/gtk-4.0/settings.ini >/dev/null <<'EOF'
-[Settings]
-gtk-theme-name = Adwaita
-gtk-icon-theme-name = Adwaita
-gtk-cursor-theme-name = Adwaita
-gtk-application-prefer-dark-theme = true
-EOF
-
-# Configure display manager.
-systemctl enable greetd
-
-tee /etc/greetd/config.toml >/dev/null <<'EOF'
-[terminal]
-vt = 7
-
-[default_session]
-user = "greetd"
-command = "tuigreet -w 24 -r -c 'dbus-run-session Hyprland >/var/log/hyprland.log 2>&1' --asterisks --theme 'action=black;border=black;prompt=green' --kb-command 13 --kb-sessions 14"
-EOF
-
-touch /var/log/hyprland.log
-chown qis:qis /var/log/hyprland.log
-
-# Configure flatpak.
-flatpak config --system --set languages en
-flatpak config --system
-
-# Configure flatpak overrides.
-flatpak override --system --socket=wayland
-flatpak override --system --filesystem=/etc/gtk-3.0:ro
-flatpak override --system --filesystem=/etc/gtk-4.0:ro
-flatpak override --system --show
 
 # Reboot system.
 reboot
@@ -474,6 +435,7 @@ env --chdir="${WINEPREFIX}/drive_c/PoE" wine64 PathOfExile.exe
 tee ~/.local/bin/poe >/dev/null <<'EOF'
 #!/bin/sh
 set -e
+export WINE_LARGE_ADDRESS_AWARE=1
 export WINEPREFIX="${HOME}/.local/games/poe"
 cd "${WINEPREFIX}/drive_c/PoE"
 
