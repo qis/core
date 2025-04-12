@@ -190,6 +190,8 @@ emerge -pe @world | grep dev-lang/python
 # Install VMWare guest tools.
 # emerge -avn app-emulation/open-vm-tools
 # systemctl enable vmtoolsd
+# systemctl disable thinkfan
+# systemctl disable wpa_supplicant@wlan
 
 # Merge config changes.
 # Press 'q' to quit pager.
@@ -216,36 +218,8 @@ halt -p
 Configure system.
 
 ```sh
-# Install SSH config.
-scp -r .ssh core:
-
 # Log in as user.
 ssh core
-
-# Configure ssh.
-chmod 0755 .ssh
-chmod 0644 .ssh/*
-chmod 0600 .ssh/id_rsa
-cp .ssh/id_rsa.pub .ssh/authorized_keys
-rm -f .ssh/.known_hosts* .ssh/known_hosts
-
-# Configure btop.
-mkdir -p ~/.config/btop; tee ~/.config/btop/btop.conf >/dev/null <<'EOF'
-presets = "cpu:0:default,proc:0:default"
-shown_boxes = "cpu proc"
-theme_background = False
-proc_cpu_graphs = False
-proc_sorting = "cpu lazy"
-proc_filter_kernel = True
-proc_aggregate = True
-proc_gradient = False
-proc_tree = True
-EOF
-
-# Configure wget.
-tee ~/.wgetrc >/dev/null <<'EOF'
-hsts=0
-EOF
 
 # Update cached fonts.
 fc-cache
@@ -283,52 +257,11 @@ systemctl --user status pipewire pipewire-pulse wireplumber
 # Log in as root.
 sudo su -
 
-# Configure btop.
-mkdir -p ~/.config/btop; tee ~/.config/btop/btop.conf >/dev/null <<'EOF'
-presets = "cpu:0:default,proc:0:default"
-shown_boxes = "cpu proc"
-theme_background = False
-proc_cpu_graphs = False
-proc_sorting = "cpu lazy"
-proc_filter_kernel = True
-proc_aggregate = True
-proc_gradient = False
-proc_tree = True
-EOF
+# Configure system.
+/core/bin/core-install-configure
 
-# Configure wget.
-tee ~/.wgetrc >/dev/null <<'EOF'
-hsts=0
-EOF
-
-# Set hostname.
-hostnamectl hostname core
-
-# Configure locale.
-localectl list-locales
-localectl set-locale LANG=en_US.UTF-8
-localectl set-locale LC_TIME=en_DK.UTF-8
-localectl set-locale LC_CTYPE=C.UTF-8
-localectl set-locale LC_COLLATE=C.UTF-8
-localectl set-locale LC_NUMERIC=C.UTF-8
-localectl set-locale LC_MESSAGES=C.UTF-8
-localectl set-locale LC_PAPER=ru_RU.UTF-8
-localectl set-locale LC_NAME=ru_RU.UTF-8
-localectl set-locale LC_ADDRESS=ru_RU.UTF-8
-localectl set-locale LC_TELEPHONE=ru_RU.UTF-8
-localectl set-locale LC_MONETARY=ru_RU.UTF-8
-localectl set-locale LC_MEASUREMENT=ru_RU.UTF-8
-localectl set-locale LC_IDENTIFICATION=ru_RU.UTF-8
-
-# Update environment.
-env-update
+# Load profile.
 source /etc/profile
-
-# Configure systemd.
-systemd-firstboot --prompt
-
-# Configure systemd services.
-systemctl preset-all --preset-mode=enable-only
 
 # Reboot system.
 reboot

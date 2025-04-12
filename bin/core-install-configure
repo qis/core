@@ -1,0 +1,53 @@
+#!/bin/bash
+set -e
+
+color_red="\e[1;31m"
+color_log="\e[1;32m"
+color_clr="\e[0m"
+
+log() {
+  echo -e "${color_clr}"
+  echo -e "${color_log}${*}${color_clr}" 1>&2
+}
+
+core_kernel_version="$(make -C /usr/src/linux -s kernelrelease)"
+core_kernel_install="$(cat /etc/kernel/entry-token)"
+
+if [ -z "${core_kernel_version}" ]; then
+  echo -e "${color_red}ERROR: Could not determine kernel version.${color_clr}"
+  exit 1
+fi
+
+log "Setting hostname ..."
+hostnamectl hostname core
+
+log "Configuring locales ..."
+localectl list-locales
+localectl set-locale LANG=en_US.UTF-8
+localectl set-locale LC_TIME=en_DK.UTF-8
+localectl set-locale LC_CTYPE=C.UTF-8
+localectl set-locale LC_COLLATE=C.UTF-8
+localectl set-locale LC_NUMERIC=C.UTF-8
+localectl set-locale LC_MESSAGES=C.UTF-8
+localectl set-locale LC_PAPER=ru_RU.UTF-8
+localectl set-locale LC_NAME=ru_RU.UTF-8
+localectl set-locale LC_ADDRESS=ru_RU.UTF-8
+localectl set-locale LC_TELEPHONE=ru_RU.UTF-8
+localectl set-locale LC_MONETARY=ru_RU.UTF-8
+localectl set-locale LC_MEASUREMENT=ru_RU.UTF-8
+localectl set-locale LC_IDENTIFICATION=ru_RU.UTF-8
+
+log "Configuring systemd ..."
+systemd-firstboot --prompt
+
+log "Configuring systemd services ..."
+systemctl preset-all --preset-mode=enable-only
+
+log "Updating environment ..."
+env-update
+
+log "Execute the following commands:"
+echo
+echo '  source /etc/profile'
+echo '  reboot'
+echo

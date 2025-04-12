@@ -294,6 +294,13 @@ echo "auth            optional        pam_exec.so expose_authtok /sbin/mount-zfs
 log "Setting home directory properties ..."
 zfs set core.encrypt.automount:user=qis system/home/qis
 
+log "Copying btop config ..."
+mkdir -p /root/.config/btop
+cp /home/qis/.config/btop/btop.conf /root/.config/btop/btop.conf
+
+log "Copying wget config ..."
+cp /home/qis/.wgetrc /root/.wgetrc
+
 log "Updating environment ..."
 env-update
 
