@@ -9,30 +9,18 @@ mount /dev/sda5 /mnt/backup
 # Create system directory structure.
 /mnt/backup/core/bin/core-system-import
 
-# Unmount backup partition.
-umount /mnt/backup
-
-# Mount backup partition.
-mkdir -p /mnt/gentoo/mnt/backup
-mount /dev/sda5 /mnt/gentoo/mnt/backup
-
 # Chroot into system.
-/mnt/gentoo/mnt/backup/core/bin/core-system-chroot
+/mnt/backup/core/bin/core-system-chroot
 
 # Load profile.
 source /etc/profile
 export PS1="(chroot) ${PS1}"
 
 # TODO
+# env --chdir=/boot dracut --force --kver 6.12.21-gentoo gentoo/6.12.21-gentoo/initrd
 
 # Exit chroot environment.
 exit
-
-# Unmount backup partition.
-umount /mnt/gentoo/mnt/backup
-
-# Mount backup partition.
-mount /dev/sda5 /mnt/backup
 
 # Unmount filesystems.
 /mnt/backup/core/bin/core-system-umount
