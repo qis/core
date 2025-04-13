@@ -2,7 +2,7 @@
 llvm-core/* native-symlinks
 llvm-core/* LLVM_TARGETS: -*
 llvm-core/clang-common default-lld
-llvm-core/clang-runtime openmp -sanitize
+llvm-core/clang-runtime libcxx openmp -sanitize
 llvm-core/lldb libedit ncurses python
 llvm-core/llvm libedit libffi z3
 
