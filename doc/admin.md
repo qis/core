@@ -2,6 +2,21 @@
 Common administrative tasks.
 
 ```sh
+# Reboot system.
+systemctl reboot
+
+# Shutdown system.
+systemctl poweroff
+
+# Suspend to disk.
+systemctl hibernate
+
+# Suspend to memory.
+systemctl suspend
+
+# Suspend to memory, then disk.
+systemctl sleep
+
 # Show dmesg errors.
 dmesg | grep -iE "error|fail"
 

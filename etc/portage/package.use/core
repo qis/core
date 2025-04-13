@@ -10,8 +10,6 @@
 # Kernel
 sys-apps/systemd boot ukify
 sys-kernel/installkernel uki ukify
-sys-kernel/linux-firmware compress-zstd
-sys-kernel/gentoo-sources symlink
 
 # Compression
 app-arch/p7zip rar

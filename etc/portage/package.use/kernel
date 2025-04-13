@@ -1,3 +1,2 @@
 # Kernel
-sys-kernel/linux-firmware compress-zstd
 sys-kernel/gentoo-sources symlink

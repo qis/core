@@ -184,6 +184,9 @@ mkdir -p /etc/pipewire
 cat /usr/share/pipewire/pipewire.conf > /etc/pipewire/pipewire.conf
 cat /core/etc/security/limits.d/50-pw-memlock.conf > /etc/security/limits.d/50-pw-memlock.conf
 
+log "Configuring user path ..."
+cat /core/etc/profile.d/path.sh > /etc/profile.d/path.sh
+
 log "Configuring user lockout ..."
 cat /core/etc/security/faillock.conf > /etc/security/faillock.conf
 
@@ -211,6 +214,9 @@ ln -snf ncpamixer /usr/bin/mixer
 
 log "Creating sixel image viewer symlink ..."
 ln -snf chafa /usr/bin/view
+
+log "Disabling gettext recode-sr-latin ..."
+chmod -x /usr/bin/recode-sr-latin
 
 log "Enabling system services ..."
 systemctl enable sshd

@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 6.12.16-gentoo Kernel Configuration
+# Linux/x86 6.12.21-gentoo Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="gcc (Gentoo 14.2.1_p20241221 p7) 14.2.1 20241221"
 CONFIG_CC_IS_GCC=y
@@ -20,7 +20,7 @@ CONFIG_CC_HAS_ASM_GOTO_TIED_OUTPUT=y
 CONFIG_TOOLS_SUPPORT_RELR=y
 CONFIG_CC_HAS_ASM_INLINE=y
 CONFIG_CC_HAS_NO_PROFILE_FN_ATTR=y
-CONFIG_PAHOLE_VERSION=127
+CONFIG_PAHOLE_VERSION=129
 CONFIG_IRQ_WORK=y
 CONFIG_BUILDTIME_TABLE_SORT=y
 CONFIG_THREAD_INFO_IN_TASK=y
@@ -1452,12 +1452,10 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
 #
 CONFIG_FW_LOADER=y
 CONFIG_FW_LOADER_DEBUG=y
-CONFIG_EXTRA_FIRMWARE="regulatory.db regulatory.db.p7s amdgpu/yellow_carp_asd.bin.zst amdgpu/yellow_carp_ce.bin.zst amdgpu/yellow_carp_dmcub.bin.zst amdgpu/yellow_carp_me.bin.zst amdgpu/yellow_carp_mec.bin.zst amdgpu/yellow_carp_mec2.bin.zst amdgpu/yellow_carp_pfp.bin.zst amdgpu/yellow_carp_rlc.bin.zst amdgpu/yellow_carp_sdma.bin.zst amdgpu/yellow_carp_ta.bin.zst amdgpu/yellow_carp_toc.bin.zst amdgpu/yellow_carp_vcn.bin.zst"
+CONFIG_EXTRA_FIRMWARE="regulatory.db regulatory.db.p7s amdgpu/yellow_carp_asd.bin amdgpu/yellow_carp_ce.bin amdgpu/yellow_carp_dmcub.bin amdgpu/yellow_carp_me.bin amdgpu/yellow_carp_mec.bin amdgpu/yellow_carp_mec2.bin amdgpu/yellow_carp_pfp.bin amdgpu/yellow_carp_rlc.bin amdgpu/yellow_carp_sdma.bin amdgpu/yellow_carp_ta.bin amdgpu/yellow_carp_toc.bin amdgpu/yellow_carp_vcn.bin"
 CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"
 # CONFIG_FW_LOADER_USER_HELPER is not set
-CONFIG_FW_LOADER_COMPRESS=y
-# CONFIG_FW_LOADER_COMPRESS_XZ is not set
-CONFIG_FW_LOADER_COMPRESS_ZSTD=y
+# CONFIG_FW_LOADER_COMPRESS is not set
 CONFIG_FW_CACHE=y
 # CONFIG_FW_UPLOAD is not set
 # end of Firmware loader
@@ -1542,7 +1540,6 @@ CONFIG_UNACCEPTED_MEMORY=y
 
 CONFIG_UEFI_CPER=y
 CONFIG_UEFI_CPER_X86=y
-# CONFIG_IMX_SCMI_MISC_DRV is not set
 
 #
 # Qualcomm firmware drivers
@@ -4366,7 +4363,6 @@ CONFIG_STAGING=y
 # CONFIG_VME_BUS is not set
 # CONFIG_GOLDFISH is not set
 # CONFIG_CHROME_PLATFORMS is not set
-# CONFIG_CZNIC_PLATFORMS is not set
 # CONFIG_MELLANOX_PLATFORM is not set
 # CONFIG_SURFACE_PLATFORMS is not set
 CONFIG_X86_PLATFORM_DEVICES=y
