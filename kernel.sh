@@ -72,7 +72,7 @@ rm /boot/loader/entries/${core_kernel_install}-${core_kernel_version}.conf
 log "Rebuilding external kernel modules ..."
 emerge @module-rebuild
 
-log "Generating initial kernel RAM disk filesystem ..."
+log "Generating initial RAM disk ..."
 env --chdir=/boot dracut --force --kver "${core_kernel_version}" \
   "${core_kernel_install}/${core_kernel_version}/initrd"
 
