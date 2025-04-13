@@ -57,9 +57,9 @@ tp() {
 }
 
 case $(id -u) in
-   0) export PS1='$(tp)\[\e[31m\]\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\] ' ;;
-1000) export PS1='$(tp)\[\e[32m\]\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\] ' ;;
-   *) export PS1='$(tp)\[\e[33m\]\u\[\e[0m\]@\[\e[33m\]\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\] ' ;;
+   0) export PS1='$(tp)\[\e[1;31m\]\h\[\e[0m\] \[\e[1;34m\]\w\[\e[0m\] ' ;;
+1000) export PS1='$(tp)\[\e[1;32m\]\h\[\e[0m\] \[\e[1;34m\]\w\[\e[0m\] ' ;;
+   *) export PS1='$(tp)\[\e[1;33m\]\u\[\e[0m\]@\[\e[1;33m\]\h\[\e[0m\] \[\e[1;34m\]\w\[\e[0m\] ' ;;
 esac
 
 if [[ $- == *i* ]]; then
