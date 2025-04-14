@@ -50,6 +50,9 @@ Run heaven benchmarks.
 # RUN
 # F9
 
+# Windows (OpenGL): 3362 (133.5 FPS)
+# Windows (DirectX 11): 3092 (122.8 FPS)
+
 # Hyprland (Wayland Window): 2654 (105.4 FPS)
 firejail --private=~/.local/private env --chdir=Unigine_Heaven-4.0 ./heaven
 
@@ -69,8 +72,35 @@ firejail --private=~/.local/private env --chdir=Unigine_Heaven-4.0 ./heaven
 gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F fsr --rt --backend drm -- \
 firejail --private=~/.local/private env --chdir=Unigine_Heaven-4.0 ./heaven
 
-# Windows (OpenGL): 3362 (133.5 FPS)
-# Windows (DirectX 11): 3092 (122.8 FPS)
+# Wine Hyprland (OpenGL Native)
+env --chdir="${WINEPREFIX}/drive_c/Heaven" wine C:/Heaven/heaven.bat
+
+# Wine Hyprland (DirectX 11 Native)
+env --chdir="${WINEPREFIX}/drive_c/Heaven" wine C:/Heaven/heaven.bat
+
+# Wine Gamescope (Wayland OpenGL Native)
+gamescope -b -f --rt --backend wayland -- \
+env --chdir="${WINEPREFIX}/drive_c/Heaven" wine C:/Heaven/heaven.bat
+
+# Wine Gamescope (Wayland DirectX 11 Native)
+gamescope -b -f --rt --backend wayland -- \
+env --chdir="${WINEPREFIX}/drive_c/Heaven" wine C:/Heaven/heaven.bat
+
+# Wine Gamescope (DRM OpenGL Linear)
+gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F linear --rt --backend drm -- \
+env --chdir="${WINEPREFIX}/drive_c/Heaven" wine C:/Heaven/heaven.bat
+
+# Wine Gamescope (DRM DirectX 11 Linear)
+gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F linear --rt --backend drm -- \
+env --chdir="${WINEPREFIX}/drive_c/Heaven" wine C:/Heaven/heaven.bat
+
+# Wine Gamescope (DRM OpenGL FSR)
+gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F fsr --rt --backend drm -- \
+env --chdir="${WINEPREFIX}/drive_c/Heaven" wine C:/Heaven/heaven.bat
+
+# Wine Gamescope (DRM DirectX 11 FSR)
+gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F fsr --rt --backend drm -- \
+env --chdir="${WINEPREFIX}/drive_c/Heaven" wine C:/Heaven/heaven.bat
 ```
 
 Run superposition benchmarks.
@@ -86,6 +116,9 @@ Run superposition benchmarks.
 # RUN
 # SUPER+F11
 # F9
+
+# Windows (OpenGL): 5977 (44.7 FPS)
+# Windows (DirectX): 6655 (49.7 FPS)
 
 # Hyprland (Wayland Native): 6788 (50.7 FPS)
 firejail --private=~/.local/private env --chdir=Unigine_Superposition-1.1 QT_QPA_PLATFORM=xcb ./Superposition
@@ -120,30 +153,27 @@ env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superp
 # Wine Hyprland (DirectX Native): 6492 (48.5 FPS)
 env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superposition.exe
 
-# Wine Gamescope (DRM OpenGL Native):  ( FPS)
+# Wine Gamescope (Wayland OpenGL Native)
 gamescope -b -f --rt --backend wayland -- \
 env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superposition.exe
 
-# Wine Gamescope (DRM DirectX Native):  ( FPS)
+# Wine Gamescope (Wayland DirectX Native)
 gamescope -b -f --rt --backend wayland -- \
 env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superposition.exe
 
-# Wine Gamescope (DRM OpenGL Linear):  ( FPS)
+# Wine Gamescope (DRM OpenGL Linear)
 gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F linear --rt --backend drm -- \
 env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superposition.exe
 
-# Wine Gamescope (DRM DirectX Linear):  ( FPS)
+# Wine Gamescope (DRM DirectX Linear)
 gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F linear --rt --backend drm -- \
 env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superposition.exe
 
-# Wine Gamescope (DRM OpenGL FSR):  ( FPS)
+# Wine Gamescope (DRM OpenGL FSR)
 gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F fsr --rt --backend drm -- \
 env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superposition.exe
 
-# Wine Gamescope (DRM DirectX FSR):  ( FPS)
+# Wine Gamescope (DRM DirectX FSR)
 gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F fsr --rt --backend drm -- \
 env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superposition.exe
-
-# Windows (OpenGL): 5977 (44.7 FPS)
-# Windows (DirectX): 6655 (49.7 FPS)
 ```
