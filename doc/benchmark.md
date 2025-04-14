@@ -69,7 +69,8 @@ firejail --private=~/.local/private env --chdir=Unigine_Heaven-4.0 ./heaven
 gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F fsr --rt --backend drm -- \
 firejail --private=~/.local/private env --chdir=Unigine_Heaven-4.0 ./heaven
 
-# Windows:
+# Windows (OpenGL): 3362 (133.5 FPS)
+# Windows (DirectX 11): 3092 (122.8 FPS)
 ```
 
 Run superposition benchmarks.
@@ -143,6 +144,6 @@ env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superp
 gamescope -w 1280 -h 800 -W 2560 -H 1600 -b -f -F fsr --rt --backend drm -- \
 env --chdir="${WINEPREFIX}/drive_c/Superposition" wine64 C:/Superposition/Superposition.exe
 
-# Windows:
-# Windows:
+# Windows (OpenGL): 5977 (44.7 FPS)
+# Windows (DirectX): 6655 (49.7 FPS)
 ```
