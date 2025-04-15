@@ -149,23 +149,24 @@ flatpak override --user --show
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
 # Find application by name.
-flatpak search floorp
+#flatpak search floorp
 
 # Install browser.
 flatpak install one.ablaze.floorp
-flatpak run one.ablaze.floorp
+
+# Install creation suite.
+flatpak install org.blender.Blender
+flatpak uninstall --delete-data org.blender.Blender
+flatpak uninstall --unused
 
 # Install chat client.
 flatpak install org.telegram.desktop
-flatpak run org.telegram.desktop
 
 # Install office suite.
 flatpak install org.libreoffice.LibreOffice
-flatpak run org.libreoffice.LibreOffice
 
 # Install audio recorder.
 flatpak install org.tenacityaudio.Tenacity
-flatpak run org.tenacityaudio.Tenacity
 
 # Install digital audio workstation.
 # Version 1.0.0 can't record audio.
