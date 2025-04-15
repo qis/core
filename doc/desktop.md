@@ -98,11 +98,13 @@ npm install -g \
 ```
 
 ## Applications
+Press SUPER + SPACE to open the applications menu and show desktop entries from all `${XDG_DATA_DIRS}`
+except `/usr/share/applications`.
 
-1. Press MENU+SPACE to open the applications menu.
-2. Copy the corresponding `.desktop` file from `/usr/share/applications` to `~/.local/share/applications`.
-3. Add the `Hidden=true` property to `[Desktop Entry]` in the copied file.
-4. Copy `.desktop` file to `core-<name>.desktop` file in `~/.local/share/applications`:
+1. Copy `.desktop` file to `~/.local/share/applications/<name>.desktop`:
+   * Add the `Hidden=true` property to `[Desktop Entry]` in the copied file.
+
+2. Copy `.desktop` file to `~/.local/share/applications/core-<name>.desktop`:
    * Remove `Name` translations.
    * Remove `GenericName` properties.
    * Remove `Categories` properties.
@@ -110,10 +112,10 @@ npm install -g \
    * Remove `Keywords` properties.
    * Remove `MimeType` properties.
 
-Possible optimizations in `core-<name>.desktop` files:
-1. Add `-style Adwaita-dark` to Qt applications "Exec" entries.
-2. Add `env KRITA_NO_STYLE_OVERRIDE=1 QT_SCALE_FACTOR=2 ...` to the Krita `Exec` entry.
-3. Add `env QT_SCALE_FACTOR=2 ...` for the Scribus `Exec` entry and remove the `TryExec` entry.
+Possible optimizations:
+* Add `-style Adwaita-dark` to Qt applications "Exec" entries.
+* Add `env KRITA_NO_STYLE_OVERRIDE=1 QT_SCALE_FACTOR=2 ...` to the Krita `Exec` entry.
+* Add `env QT_SCALE_FACTOR=2 ...` for the Scribus `Exec` entry and remove the `TryExec` entry.
 
 ## Printing
 
