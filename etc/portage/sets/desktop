@@ -24,6 +24,8 @@ dev-util/hyprwayland-scanner
 
 gui-wm/gamescope
 
+gui-apps/wev
+
 x11-apps/xprop
 x11-apps/xrandr
 x11-apps/xrdb
@@ -80,6 +82,7 @@ gui-apps/foot
 sci-calculators/qalculate-gtk
 app-admin/keepassxc
 #media-gfx/blender
+sys-apps/firejail
 sys-apps/flatpak
 
 # Windows

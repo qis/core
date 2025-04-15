@@ -32,6 +32,8 @@ dev-util/hyprwayland-scanner ~amd64
 
 gui-wm/gamescope ~amd64
 
+gui-apps/wev ~amd64
+
 # Portals
 gui-libs/xdg-desktop-portal-hyprland ~amd64
 

@@ -15,6 +15,10 @@ if [ "$(id -u)" = "0" ]; then
   exit 1
 fi
 
+self=$(readlink -f -- "${0}" || realpath -- "${0}")
+core=$(dirname "${self}")
+cd "${core}"
+
 log "Checking camera ..."
 mpv --demuxer-lavf-o=input_format=mjpeg,video_size=1920x1080,framerate=30 \
   av://v4l2:/dev/video0 --profile=low-latency --untimed

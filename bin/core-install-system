@@ -121,10 +121,11 @@ if [ "x${1}" = "xboot" ]; then
 log "Creating systemd-boot loader entry ..."
 tee /boot/loader/entries/linux.conf >/dev/null <<EOF
 title Linux
-linux  /${core_kernel_install}/${core_kernel_version}/linux
+linux /${core_kernel_install}/${core_kernel_version}/linux
 initrd /${core_kernel_install}/${core_kernel_version}/microcode-amd
 initrd /${core_kernel_install}/${core_kernel_version}/initrd
-options root=system/root ro acpi_enforce_resources=lax net.ifnames=0 quiet
+options root=system/root ro acpi_enforce_resources=lax net.ifnames=0
+options quiet loglevel=1 rd.udev.log_level=3 systemd.show_status=auto
 EOF
 if ip link show dev dock >/dev/null 2>&1; then
 tee -a /boot/loader/entries/linux.conf >/dev/null <<EOF
@@ -176,6 +177,10 @@ log "Configuring virtual memory ..."
 mkdir -p /etc/sysctl.d
 cat /core/etc/sysctl.d/vm.conf > /etc/sysctl.d/vm.conf
 
+log "Configuring virtual terminal ..."
+mkdir -p /etc/sysctl.d
+cat /core/etc/sysctl.d/vt.conf > /etc/sysctl.d/vt.conf
+
 log "Configuring console font ..."
 cat /core/etc/vconsole.conf > /etc/vconsole.conf
 
@@ -217,6 +222,12 @@ ln -snf chafa /usr/bin/view
 
 log "Disabling gettext recode-sr-latin ..."
 chmod -x /usr/bin/recode-sr-latin
+
+log "Configuring system services timeouts ..."
+tee -a /etc/systemd/system.conf >/dev/null <<'EOF'
+DefaultTimeoutStartSec=30s
+DefaultTimeoutStopSec=15s
+EOF
 
 log "Enabling system services ..."
 systemctl enable sshd
@@ -303,6 +314,9 @@ echo "auth            optional        pam_exec.so expose_authtok /sbin/mount-zfs
 
 log "Setting home directory properties ..."
 zfs set core.encrypt.automount:user=qis system/home/qis
+
+log "Updating helix config ownership ..."
+chown -R qis:qis /etc/helix
 
 log "Copying btop config ..."
 mkdir -p /root/.config/btop
