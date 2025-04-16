@@ -20,6 +20,7 @@ app-text/aspell nls L10N: en de ru
 
 # Libraries
 app-text/xmlto text
+dev-db/sqlite readline secure-delete tools
 dev-libs/boost context nls python tools
 dev-libs/glib mime
 
@@ -54,6 +55,3 @@ sys-process/lsof rpc
 
 # Fonts
 media-fonts/terminus-font pcf-unicode
-
-# Tools
-dev-db/sqlite readline secure-delete tools

@@ -1,10 +1,18 @@
-# Compiler
+# Tools
+dev-lang/nasm
+dev-lang/yasm
+dev-util/patchelf
+
+# Clang
 llvm-core/clang
 llvm-core/lldb
 llvm-core/llvm
 
 # Rust
 dev-lang/rust-bin
+
+# Go
+dev-lang/go
 
 # Editor
 dev-libs/tree-sitter-c

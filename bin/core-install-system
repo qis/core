@@ -76,17 +76,17 @@ log "Installing @core set ..."
 emerge -n @core
 emerge -c
 
-log "Creating @llvm set ..."
-cat /core/etc/portage/profile/package.use.force/llvm > /etc/portage/profile/package.use.force/llvm
-cat /core/etc/portage/package.mask/llvm > /etc/portage/package.mask/llvm
-cat /core/etc/portage/package.use/llvm > /etc/portage/package.use/llvm
-cat /core/etc/portage/sets/llvm > /etc/portage/sets/llvm
+log "Creating @development set ..."
+cat /core/etc/portage/profile/package.use.force/development > /etc/portage/profile/package.use.force/development
+cat /core/etc/portage/package.mask/development > /etc/portage/package.mask/development
+cat /core/etc/portage/package.use/development > /etc/portage/package.use/development
+cat /core/etc/portage/sets/development > /etc/portage/sets/development
 
 log "Updating @world set ..."
 emerge -uUD @world
 
-log "Installing @llvm set ..."
-emerge -n @llvm
+log "Installing @development set ..."
+emerge -n @development
 emerge -c
 
 log "Creating machine ID ..."

@@ -15,9 +15,6 @@ app-text/aspell
 # Development
 dev-build/cmake
 dev-build/ninja
-dev-lang/nasm
-dev-lang/yasm
-dev-util/patchelf
 
 # System
 app-admin/sudo
