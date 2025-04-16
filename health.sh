@@ -19,21 +19,30 @@ self=$(readlink -f -- "${0}" || realpath -- "${0}")
 core=$(dirname "${self}")
 cd "${core}"
 
-log "Checking camera ..."
-mpv --demuxer-lavf-o=input_format=mjpeg,video_size=1920x1080,framerate=30 \
-  av://v4l2:/dev/video0 --profile=low-latency --untimed
-
-if [ -e /dev/video4 ]; then
+if [ "${1}" = "camera" ]; then
   mpv --demuxer-lavf-o=input_format=mjpeg,video_size=1920x1080,framerate=30 \
-    av://v4l2:/dev/video4 --profile=low-latency --untimed
+    av://v4l2:/dev/video0 --profile=low-latency --untimed
+
+  if [ -e /dev/video4 ]; then
+    mpv --demuxer-lavf-o=input_format=mjpeg,video_size=1920x1080,framerate=30 \
+      av://v4l2:/dev/video4 --profile=low-latency --untimed
+  fi
+
+  exit $?
 fi
 
-log "Checking config files ..."
 find etc -type f | while read file; do
   if ! sudo cmp -s -- "/${file}" "${file}"; then
     sudo diff -uN --label "core: /${file}" --label "root: /${file}" --color=always "${file}" "/${file}" || true
+    if [ "${1}" = "update" ]; then
+      sudo cat "/${file}" > "${file}"
+    fi
   fi
 done
+
+if [ "${1}" = "update" ]; then
+  exit 0
+fi
 
 log "Checking real time clock ..."
 timedatectl

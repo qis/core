@@ -165,6 +165,9 @@ flatpak install org.telegram.desktop
 # Install office suite.
 flatpak install org.libreoffice.LibreOffice
 
+# Install streaming software.
+flatpak install com.obsproject.Studio
+
 # Install audio recorder.
 flatpak install org.tenacityaudio.Tenacity
 

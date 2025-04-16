@@ -3,7 +3,7 @@
 */* fontconfig harfbuzz truetype
 */* avif gif heif jpeg jpeg2k jpegxl openexr png raw svg tiff webp
 */* aac encode flac id3tag mad mp3 mp4 mpeg ogg opus speex theora vorbis x264 x265
-*/* -alsa -ao ffmpeg -jack -oss pipewire pulseaudio -sndio sound
+*/* -alsa -ao ffmpeg -jack -oss pipewire -portaudio pulseaudio -sndio sound
 */* apparmor policykit
 */* opencl vaapi
 
@@ -44,7 +44,7 @@ media-video/wireplumber LUA_SINGLE_TARGET: lua5-4
 
 # Video
 media-libs/mesa lm-sensors proprietary-codecs
-media-video/ffmpeg lame v4l vpx xvid
+media-video/ffmpeg lame libaom v4l vpx xvid
 
 # Image
 media-gfx/imagemagick corefonts cxx hdri lcms lqr openexr xml zip

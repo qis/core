@@ -81,7 +81,7 @@ gui-apps/foot
 # Applications
 sci-calculators/qalculate-gtk
 app-admin/keepassxc
-#media-gfx/blender
+media-gfx/blender
 sys-apps/firejail
 sys-apps/flatpak
 

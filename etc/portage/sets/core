@@ -21,11 +21,12 @@ dev-util/patchelf
 
 # System
 app-admin/sudo
-sys-auth/rtkit
 app-laptop/thinkfan
 app-misc/c_rehash
 net-misc/dhcpcd
+sys-apps/apparmor
 sys-apps/ripgrep
+sys-auth/rtkit
 sys-auth/seatd
 
 # Filesystem

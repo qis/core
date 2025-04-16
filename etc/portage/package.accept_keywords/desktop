@@ -43,3 +43,6 @@ media-fonts/twemoji ~amd64
 
 # Video
 media-video/gpu-screen-recorder **
+
+# Applications
+media-gfx/blender ~amd64
