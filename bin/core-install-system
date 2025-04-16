@@ -168,8 +168,11 @@ cat /core/etc/systemd/timesyncd.conf.d/vniiftri.conf > /etc/systemd/timesyncd.co
 log "Configuring power button and lid switch ..."
 cat /core/etc/systemd/logind.conf > /etc/systemd/logind.conf
 
-log "Configuring thinkpad services ..."
+log "Configuring V4L loopback devices ..."
 mkdir -p /etc/modprobe.d
+cat /core/etc/modprobe.d/v4l2loopback.conf > /etc/modprobe.d/v4l2loopback.conf
+
+log "Configuring thinkpad services ..."
 cat /core/etc/modprobe.d/thinkpad.conf > /etc/modprobe.d/thinkpad.conf
 cat /core/etc/thinkfan.conf > /etc/thinkfan.conf
 
