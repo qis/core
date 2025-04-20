@@ -159,6 +159,15 @@ flatpak install org.blender.Blender
 flatpak uninstall --delete-data org.blender.Blender
 flatpak uninstall --unused
 
+# Install a digital art studio.
+# TODO: Document OpenColorIO for Krita and Blender.
+flatpak install org.kde.krita
+
+# Install development environment.
+flatpak install com.vscodium.codium
+flatpak uninstall --delete-data com.vscodium.codium
+flatpak uninstall --unused
+
 # Install chat client.
 flatpak install org.telegram.desktop
 

@@ -1,4 +1,5 @@
 # Clang
+# Different versions will be dragged in as dependencies.
 llvm-core/* native-symlinks
 llvm-core/* LLVM_TARGETS: -*
 llvm-core/clang-common default-lld

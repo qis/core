@@ -89,6 +89,9 @@ log "Installing @development set ..."
 emerge -n @development
 emerge -c
 
+log "Creating libedit symlink ..."
+ln -snf libedit.so /usr/lib64/libedit.so.2
+
 log "Creating machine ID ..."
 systemd-machine-id-setup
 

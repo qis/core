@@ -23,6 +23,9 @@ log "Installing @desktop set ..."
 emerge -n @desktop
 emerge -c
 
+log "Adding user to scanner group ..."
+usermod -a -G scanner qis
+
 log "Configuring GTK 3 ..."
 mkdir -p /etc/gtk-3.0
 cat /core/etc/gtk-3.0/settings.ini > /etc/gtk-3.0/settings.ini

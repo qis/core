@@ -44,5 +44,8 @@ media-fonts/twemoji ~amd64
 # Video
 media-video/gpu-screen-recorder **
 
-# Applications
+# Application
 media-gfx/blender ~amd64
+
+# Scanner
+app-office/naps2 ~amd64

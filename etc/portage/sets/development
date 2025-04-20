@@ -1,12 +1,19 @@
 # Tools
 dev-lang/nasm
 dev-lang/yasm
+dev-util/debootstrap
 dev-util/patchelf
+dev-util/pkgconf
+sys-devel/binutils
+
+# Libraries
+dev-libs/libedit
+sys-libs/ncurses
 
 # Clang
-llvm-core/clang
-llvm-core/lldb
-llvm-core/llvm
+# llvm-core/clang
+# llvm-core/lldb
+# llvm-core/llvm
 
 # Rust
 dev-lang/rust-bin

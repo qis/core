@@ -39,9 +39,17 @@ media-libs/libv4l utils
 # Image
 media-gfx/imv -X
 
-# Applications
+# Application
 media-gfx/blender -X alembic collada hip
+media-gfx/renderdoc qt5
+
+# Container
 sys-apps/flatpak introspection
+
+# Scanner
+app-text/poppler boost cjk curl qt6
+app-text/tessdata_fast L10N: de en ru
+media-gfx/sane-backends threads -usb SANE_BACKENDS: -* escl net
 
 # Windows
 app-emulation/wine-proton nls usb v4l xinerama
