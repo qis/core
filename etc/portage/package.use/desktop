@@ -1,6 +1,6 @@
 # Global
 */* X flatpak wayland
-*/* egl opengl vulkan
+*/* egl opengl vulkan xinerama
 */* gtk4 cairo pango
 
 # Graphics

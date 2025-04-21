@@ -18,6 +18,9 @@ sys-libs/ncurses
 # Rust
 dev-lang/rust-bin
 
+# Node
+net-libs/nodejs
+
 # Go
 dev-lang/go
 

@@ -9,3 +9,6 @@ llvm-core/llvm libedit libffi z3
 
 # Rust
 dev-lang/rust-bin clippy rust-analyzer rustfmt
+
+# Node
+net-libs/nodejs npm
