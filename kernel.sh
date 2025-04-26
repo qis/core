@@ -41,12 +41,6 @@ if [ -z "${core_kernel_install}" ]; then
   exit 1
 fi
 
-core_kernel_version="$(make -s kernelrelease)"
-if [ -z "${core_kernel_version}" ]; then
-  log "${color_red}Could not determine kernel version."
-  exit 1
-fi
-
 log "Configuring kernel ..."
 make menuconfig
 log ""
@@ -54,6 +48,12 @@ log ""
 log "Building kernel in ${color_red}3${color_log} seconds ..."
 sleep 3
 make -j17
+
+core_kernel_version="$(make -s kernelrelease)"
+if [ -z "${core_kernel_version}" ]; then
+  log "${color_red}Could not determine kernel version."
+  exit 1
+fi
 
 log "Installing kernel modules ..."
 rm -rf /lib/modules/${core_kernel_version}
@@ -67,7 +67,7 @@ log "Copying kernel config ..."
 cat .config > /boot/${core_kernel_install}/${core_kernel_version}/config
 
 log "Removing auto-generated systemd-boot loader entry ..."
-rm /boot/loader/entries/${core_kernel_install}-${core_kernel_version}.conf
+rm -f /boot/loader/entries/${core_kernel_install}-${core_kernel_version}.conf
 
 log "Rebuilding external kernel modules ..."
 emerge @module-rebuild
