@@ -106,7 +106,7 @@ emaint sync -a
 eselect news read
 
 # Update portage.
-emerge -an1 sys-apps/portage
+emerge -au1 sys-apps/portage
 
 # Update linux kernel sources.
 emerge -s '^sys-kernel/gentoo-sources$'
