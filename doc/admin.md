@@ -92,10 +92,12 @@ zfs list -t snapshot
 # Destroy old snapshots.
 # zfs destroy system/root@<name>
 # zfs destroy system/var@<name>
+# zfs destroy system/opt@<name>
 
 # Create new snapshots.
 zfs snapshot system/root@`date '+%F'`
 zfs snapshot system/var@`date '+%F'`
+zfs snapshot system/opt@`date '+%F'`
 
 # Synchronize portage repositories.
 emaint sync -a

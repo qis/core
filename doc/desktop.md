@@ -148,6 +148,11 @@ flatpak override --user --show
 # Add flathub repository.
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
+# Install Adwaita Qt theme.
+for i in $(flatpak remote-ls --columns=ref flathub | grep runtime/org.kde.KStyle.Adwaita/x86_64/); do
+  flatpak install -y flathub $i
+done
+
 # Find application by name.
 #flatpak search floorp
 
@@ -173,6 +178,8 @@ flatpak install org.telegram.desktop
 
 # Install office suite.
 flatpak install org.libreoffice.LibreOffice
+flatpak install org.texstudio.TeXstudio
+flatpak install br.eng.silas.qpdftools
 
 # Install streaming software.
 flatpak install com.obsproject.Studio

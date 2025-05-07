@@ -18,7 +18,7 @@ if [ $(id -u) -ne 0 ]; then
   xdg-user-dirs-update --set DOWNLOAD    ~/downloads
   xdg-user-dirs-update --set DOCUMENTS   ~/documents
   xdg-user-dirs-update --set MUSIC       ~/documents/music
-  xdg-user-dirs-update --set PICTURES    ~/documents/image
+  xdg-user-dirs-update --set PICTURES    ~/documents/pictures
   xdg-user-dirs-update --set VIDEOS      ~/documents/video
   xdg-user-dirs-update --set DESKTOP     ~/.local/desktop
   xdg-user-dirs-update --set PUBLICSHARE ~/.local/public
