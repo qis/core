@@ -157,7 +157,22 @@ reboot
 
 # Update @world set.
 emerge -auUD @world
+
+# Rebuild packages using preserved libraries.
+emerge @preserved-rebuild
+
+# Remove obsolete packages.
 emerge -ac
+
+# Mount boot filesystem.
+mount /boot
+
+# Update initial RAM disk.
+env --chdir=/boot dracut --force --kver "$(make -C /usr/src/linux -s kernelrelease)" \
+  "gentoo/$(make -C /usr/src/linux -s kernelrelease)/initrd"
+
+# Unmount boot.
+umount /boot
 
 # Reboot system.
 reboot
