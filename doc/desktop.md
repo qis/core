@@ -190,7 +190,7 @@ flatpak install com.obsproject.Studio
 # Install audio recorder.
 flatpak install org.tenacityaudio.Tenacity
 
-# Install digital audio workstation.
+# Install Zrythm digital audio workstation.
 # Version 1.0.0 can't record audio.
 # flatpak install org.zrythm.Zrythm
 # flatpak override --user org.zrythm.Zrythm --filesystem="$(xdg-user-dir MUSIC)"
@@ -199,6 +199,100 @@ flatpak install org.tenacityaudio.Tenacity
 # Uninstall Zrythm digital audio workstation.
 # flatpak uninstall --delete-data org.zrythm.Zrythm
 # flatpak uninstall --unused
+
+# =============================================================================
+# TODO: Not yet tested.
+# =============================================================================
+
+# Install Qtractor digital audio workstation.
+# flatpak install org.rncbc.qtractor
+
+# Install MuseE digital audio workstation.
+# flatpak install io.github.muse_sequencer.Muse
+
+# Install Bespoke modular digital audio workstation.
+# flatpak install com.bespokesynth.BespokeSynth
+```
+
+## Armor Tools
+<https://github.com/armory3d/armortools>
+
+```sh
+# Enter workspace.
+cd ~/workspace
+
+# Clone sources.
+git clone --recurse https://github.com/armory3d/armortools
+
+# Enter sources.
+cd armortools
+
+# Generate locale.
+./armorcore/make --js base/tools/extract_locales.js en
+
+# Compile and test Armor Paint.
+env --chdir=armorpaint ../armorcore/make --graphics opengl --run
+armorpaint/build/out/ArmorPaint
+
+# Compile and test Armor Lab.
+env --chdir=armorlab ../armorcore/make --graphics opengl --run
+LD_LIBRARY_PATH=armorlab/build/out armorlab/build/out/ArmorLab
+
+# Create icons directory.
+mkdir -p ~/.local/share/icons/hicolor/256x256/apps
+
+# Create icons theme.
+tee ~/.local/share/icons/hicolor/index.theme >/dev/null <<'EOF'
+[Icon Theme]
+Name=Hicolor
+Comment=Fallback icon theme
+Hidden=true
+Directories=256x256/apps,256x256@2/apps
+
+[256x256/apps]
+MinSize=64
+Size=256
+MaxSize=256
+Context=Applications
+Type=Scalable
+
+[256x256@2/apps]
+MinSize=64
+Size=256
+Scale=2
+MaxSize=256
+Context=Applications
+Type=Scalable
+EOF
+
+# Install icons.
+cp armorpaint/icon.png ~/.local/share/icons/hicolor/256x256/apps/armorpaint.png
+cp armorlab/icon.png ~/.local/share/icons/hicolor/256x256/apps/armorlab.png
+
+# Create desktop files.
+tee ~/.local/share/applications/armorpaint.desktop >/dev/null <<'EOF'
+[Desktop Entry]
+Name=Armor Paint
+Exec=/home/qis/workspace/armortools/armorpaint/build/out/ArmorPaint
+Icon=armorpaint
+Terminal=false
+Type=Application
+EOF
+
+tee ~/.local/share/applications/armorlab.desktop >/dev/null <<'EOF'
+[Desktop Entry]
+Name=Armor Lab
+Exec=env LD_LIBRARY_PATH=/home/qis/workspace/armortools/armorlab/build/out /home/qis/workspace/armortools/armorlab/build/out/ArmorLab
+Icon=armorlab
+Terminal=false
+Type=Application
+EOF
+
+# Update icons cache.
+gtk-update-icon-cache ~/.local/share/icons/hicolor
+
+# Update applications menu.
+xdg-desktop-menu forceupdate
 ```
 
 ## Path of Exile
