@@ -218,7 +218,8 @@ cat /core/etc/helix/languages.toml > /etc/helix/languages.toml
 cat /core/etc/env.d/99editor > /etc/env.d/99editor
 
 log "Creating editor symlink ..."
-ln -snf hx /usr/bin/vi
+ln -snf nvim /usr/bin/vim
+ln -snf nvim /usr/bin/vi
 
 log "Creating audio mixer symlink ..."
 ln -snf ncpamixer /usr/bin/mixer

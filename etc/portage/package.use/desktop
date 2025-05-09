@@ -11,9 +11,12 @@ gui-wm/hyprland -qtutils
 gui-wm/gamescope libei
 x11-base/xwayland libei
 
-# Plugins
+# Libraries
 dev-libs/libdbusmenu gtk3
+media-libs/opensubdiv tbb
 sci-libs/libqalculate gnuplot
+sci-physics/bullet double-precision
+sci-libs/fftw threads
 
 # Toolkit
 dev-qt/* gui qml
@@ -40,6 +43,9 @@ media-libs/libv4l utils
 media-gfx/imv -X
 
 # Application
+app-text/texlive-core xetex
+app-text/texlive extra graphics luatex science xetex
+app-text/texlive L10N: en de ru
 media-gfx/blender -X alembic collada hip
 media-gfx/renderdoc qt5
 

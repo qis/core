@@ -24,8 +24,9 @@ net-libs/nodejs
 # Go
 dev-lang/go
 
-# Editor
-dev-libs/tree-sitter-c
+# Parser
 dev-libs/tree-sitter-cpp
-dev-libs/tree-sitter-rust
+dev-libs/tree-sitter-javascript
+dev-libs/tree-sitter-typescript
+dev-libs/tree-sitter-python
 dev-libs/tree-sitter-cmake

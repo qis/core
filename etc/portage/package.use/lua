@@ -1,0 +1,3 @@
+# Lua
+*/* LUA_TARGETS: -* luajit
+*/* LUA_SINGLE_TARGET: -* luajit

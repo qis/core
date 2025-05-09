@@ -21,6 +21,7 @@ dev-libs/wayland-protocols ~amd64
 gui-libs/aquamarine ~amd64
 
 gui-wm/hyprland ~amd64
+gui-apps/hypridle ~amd64
 gui-apps/hyprlock ~amd64
 gui-apps/hyprpaper ~amd64
 gui-libs/hyprcursor ~amd64
@@ -43,6 +44,9 @@ media-fonts/twemoji ~amd64
 
 # Video
 media-video/gpu-screen-recorder **
+
+# Chromium
+sys-libs/libudev-compat ~amd64
 
 # Application
 media-gfx/blender ~amd64

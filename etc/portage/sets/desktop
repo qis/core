@@ -13,6 +13,7 @@ media-libs/mesa
 
 # Compositor
 gui-wm/hyprland
+gui-apps/hypridle
 gui-apps/hyprlock
 gui-apps/hyprpaper
 gui-libs/hyprcursor
@@ -44,7 +45,7 @@ sys-apps/xdg-desktop-portal
 sys-apps/xdg-desktop-portal-gtk
 gui-libs/xdg-desktop-portal-hyprland
 
-# Plugins
+# Libraries
 dev-libs/atk
 net-misc/yt-dlp
 
@@ -82,10 +83,15 @@ gui-apps/qt6ct
 # Terminal
 gui-apps/foot
 
+# Chromium
+sys-libs/libudev-compat
+media-video/ffmpeg-chromium
+
 # Application
 sci-calculators/qalculate-gtk
 app-editors/vscodium
 app-admin/keepassxc
+app-text/texlive
 media-gfx/blender
 media-gfx/renderdoc
 

@@ -6,3 +6,13 @@ media-video/v4l2loopback ~amd64
 
 # Monitor
 app-misc/brightnessctl ~amd64
+
+# Editor
+dev-lua/luv ~amd64
+dev-python/pynvim ~amd64
+dev-python/neovim-remote ~amd64
+app-editors/neovim ~amd64
+
+# Parser
+dev-libs/tree-sitter ~amd64
+dev-libs/tree-sitter-* ~amd64
