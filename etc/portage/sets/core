@@ -110,6 +110,7 @@ dev-libs/tree-sitter
 dev-libs/tree-sitter-css
 dev-libs/tree-sitter-html
 dev-libs/tree-sitter-json
+dev-libs/tree-sitter-markdown
 dev-libs/tree-sitter-markdown-inline
 dev-libs/tree-sitter-regex
 dev-libs/tree-sitter-bash

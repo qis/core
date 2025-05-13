@@ -67,5 +67,8 @@ if [[ $- == *i* ]]; then
   stty werase '^_'
   bind '"\C-H":backward-kill-word'
   bind '"\e[Z":menu-complete-backward'
-  #bind 'set enable-bracketed-paste off'
+
+  # Disable key sequences.
+  bind 'set keymap vi-insert'
+  bind '"\e":'
 fi

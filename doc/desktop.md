@@ -241,29 +241,31 @@ LD_LIBRARY_PATH=armorlab/build/out armorlab/build/out/ArmorLab
 # Create icons directory.
 mkdir -p ~/.local/share/icons/hicolor/256x256/apps
 
+# TODO: See how flatpak adds icons without breaking system icons.
+
 # Create icons theme.
-tee ~/.local/share/icons/hicolor/index.theme >/dev/null <<'EOF'
-[Icon Theme]
-Name=Hicolor
-Comment=Fallback icon theme
-Hidden=true
-Directories=256x256/apps,256x256@2/apps
+#tee ~/.local/share/icons/hicolor/index.theme >/dev/null <<'EOF'
+#[Icon Theme]
+#Name=Hicolor
+#Comment=Fallback icon theme
+#Hidden=true
+#Directories=256x256/apps,256x256@2/apps
+#
+#[256x256/apps]
+#MinSize=64
+#Size=256
+#MaxSize=256
+#Context=Applications
+#Type=Scalable
 
-[256x256/apps]
-MinSize=64
-Size=256
-MaxSize=256
-Context=Applications
-Type=Scalable
-
-[256x256@2/apps]
-MinSize=64
-Size=256
-Scale=2
-MaxSize=256
-Context=Applications
-Type=Scalable
-EOF
+#[256x256@2/apps]
+#MinSize=64
+#Size=256
+#Scale=2
+#MaxSize=256
+#Context=Applications
+#Type=Scalable
+#EOF
 
 # Install icons.
 cp armorpaint/icon.png ~/.local/share/icons/hicolor/256x256/apps/armorpaint.png
@@ -289,10 +291,10 @@ Type=Application
 EOF
 
 # Update icons cache.
-gtk-update-icon-cache ~/.local/share/icons/hicolor
+#gtk-update-icon-cache ~/.local/share/icons/hicolor
 
 # Update applications menu.
-xdg-desktop-menu forceupdate
+#xdg-desktop-menu forceupdate
 ```
 
 ## Path of Exile
