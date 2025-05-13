@@ -191,26 +191,22 @@ onedark.setup({
     transparent = true
   },
   colors = {
-    title     = '#de5d68',
-    border    = '#57a5e5',
-    filename  = '#57a5e5',
-    separator = '#818387',
+    title  = '#de5d68',
+    border = '#57a5e5',
   },
   code_style = {
     comments = 'none',
   },
   highlights = {
-    -- windows
-    ['NeoTreeFloatTitle']      = { fg = '$title',     bg = 'none' },
-    ['TelescopeTitle']         = { fg = '$title',     bg = 'none' },
-    ['TelescopeBorder']        = { fg = '$title',     bg = 'none' },
-    ['TelescopePromptBorder']  = { fg = '$border',    bg = 'none' },
-    ['TelescopeResultsBorder'] = { fg = '$border',    bg = 'none' },
-    ['TelescopePreviewBorder'] = { fg = '$border',    bg = 'none' },
-    ['FloatBorder']            = { fg = '$border',    bg = 'none' },
-    ['NormalFloat']            = { fg = '$border',    bg = 'none' },
+    ['NormalFloat']            = { fg = '$border', bg = 'none' },
+    ['FloatBorder']            = { fg = '$border', bg = 'none' },
+    ['NeoTreeFloatTitle']      = { fg = '$title',  bg = 'none' },
+    ['TelescopeTitle']         = { fg = '$title',  bg = 'none' },
+    ['TelescopeBorder']        = { fg = '$title',  bg = 'none' },
+    ['TelescopePromptBorder']  = { fg = '$border', bg = 'none' },
+    ['TelescopeResultsBorder'] = { fg = '$border', bg = 'none' },
+    ['TelescopePreviewBorder'] = { fg = '$border', bg = 'none' },
   },
-  --toggle_style_key = '<A-c>',
 })
 
 onedark.load()
@@ -219,83 +215,16 @@ onedark.load()
 load('neo-tree', 'nvim-neo-tree/neo-tree.nvim').setup({
   hide_root_node = true,
   popup_border_style = "rounded",
-  use_default_mappings = false,
   window = {
-    position = "float",  -- https://github.com/MunifTanjim/nui.nvim/tree/main/lua/nui/popup
+    position = "float",
     popup = {
-      position = "50%",
-      relative = "editor",
-      size = { height = "80%", width = "63" },
+      size = { height = "90%" },
       title = function(state)
         if state.path then
           return vim.fn.fnamemodify(state.path, ':t')
         end
         return state.name
       end
-    },
-    mapping_options = { noremap = true, nowait = true },
-    mappings = {
-      ["<space>"] = { "toggle_node", nowait = false },
-      ["<2-LeftMouse>"] = "open_drop",
-      ["<cr>"] = "open_drop",
-      ["<esc>"] = "cancel",
-      ["z"] = "expand_all_subnodes",
-      ["Z"] = "expand_all_nodes",
-      ["R"] = "refresh",
-      ["a"] = {
-        "add",
-        config = {
-          show_path = "relative"
-        }
-      },
-      ["A"] = "add_directory",  -- also accepts the config.show_path and config.insert_as options
-      ["d"] = "delete",
-      ["r"] = "rename",
-      ["y"] = "copy_to_clipboard",
-      ["x"] = "cut_to_clipboard",
-      ["p"] = "paste_from_clipboard",
-      ["c"] = "copy",  -- takes text input for destination, also accepts the config.show_path and config.insert_as options
-      ["m"] = "move",  -- takes text input for destination, also accepts the config.show_path and config.insert_as options
-      ["q"] = "close_window",
-      ["?"] = "show_help",
-      ["<"] = "prev_source",
-      [">"] = "next_source"
-    }
-  },
-  filesystem = {
-    window = {
-      mappings = {
-        ["h"] = "toggle_hidden",
-        ["/"] = "fuzzy_finder",
-        ["D"] = "fuzzy_finder_directory",
-        ["#"] = "fuzzy_sorter",
-        ["<C-x>"] = "clear_filter",
-        ["<bs>"] = "navigate_up",
-        ["."] = "set_root",
-        ["["] = "prev_git_modified",
-        ["]"] = "next_git_modified",
-        ["i"] = "show_file_details",  -- see `:h neo-tree-file-actions` for options to customize the window
-        ["b"] = "rename_basename",
-        ["o"] = {
-          "show_help",
-          nowait = false,
-          config = {title = "Order by", prefix_key = "o"}
-        },
-        ["oc"] = {"order_by_created", nowait = false},
-        ["od"] = {"order_by_diagnostics", nowait = false},
-        ["og"] = {"order_by_git_status", nowait = false},
-        ["om"] = {"order_by_modified", nowait = false},
-        ["on"] = {"order_by_name", nowait = false},
-        ["os"] = {"order_by_size", nowait = false},
-        ["ot"] = {"order_by_type", nowait = false}
-      },
-      fuzzy_finder_mappings = {
-        ["<down>"] = "move_cursor_down",
-        ["<C-n>"] = "move_cursor_down",
-        ["<up>"] = "move_cursor_up",
-        ["<C-p>"] = "move_cursor_up",
-        ["<esc>"] = "close"
-      }
     },
   },
 })
@@ -307,86 +236,20 @@ load('telescope', 'nvim-telescope/telescope.nvim').setup()
 load('diffview', 'sindrets/diffview.nvim').setup()
 
 -- Git Signs
-load('gitsigns', 'lewis6991/gitsigns.nvim').setup({
-  signs = {
-    add          = { text = '┃' },
-    change       = { text = '┃' },
-    delete       = { text = '_' },
-    topdelete    = { text = '‾' },
-    changedelete = { text = '~' },
-    untracked    = { text = '┆' },
-  },
-  signs_staged = {
-    add          = { text = '┃' },
-    change       = { text = '┃' },
-    delete       = { text = '_' },
-    topdelete    = { text = '‾' },
-    changedelete = { text = '~' },
-    untracked    = { text = '┆' },
-  },
-  signs_staged_enable = true,
-  signcolumn = true,   -- toggle with `:Gitsigns toggle_signs`
-  numhl      = false,  -- toggle with `:Gitsigns toggle_numhl`
-  linehl     = false,  -- toggle with `:Gitsigns toggle_linehl`
-  word_diff  = false,  -- toggle with `:Gitsigns toggle_word_diff`
-  watch_gitdir = {
-    follow_files = true,
-  },
-  auto_attach = true,
-  attach_to_untracked = false,
-  current_line_blame = false,  -- toggle with `:Gitsigns toggle_current_line_blame`
-  current_line_blame_opts = {
-    virt_text = true,
-    virt_text_pos = 'eol',  -- 'eol' | 'overlay' | 'right_align'
-    delay = 1000,
-    ignore_whitespace = false,
-    virt_text_priority = 100,
-    use_focus = true,
-  },
-  current_line_blame_formatter = '<author>, <author_time:%R> - <summary>',
-  sign_priority = 6,
-  update_debounce = 100,
-  status_formatter = nil,  -- use default
-  max_file_length = 40000,  -- disable if file is longer than this (in lines)
-  preview_config = {
-    -- Options passed to `nvim_open_win`.
-    style = 'minimal',
-    relative = 'cursor',
-    row = 0,
-    col = 1,
-  },
-})
+load('gitsigns', 'lewis6991/gitsigns.nvim').setup()
 
 -- Terminal
 load('toggleterm', 'akinsho/toggleterm.nvim').setup({
-  size = 16,
-  open_mapping = '',  -- <Pause>
-  direction = 'horizontal',  -- 'horizontal' | 'tab' | 'float'
-  float_opts = {
-    border = 'rounded',
-  },
+  size = 16, open_mapping = '',  -- <Pause>
 })
 
 -- Status
 load('lualine', 'nvim-lualine/lualine.nvim').setup({
   options = {
-    theme = 'auto',
     globalstatus = true,
-    icons_enabled = true,
     component_separators = { left = '', right = '' },
     section_separators = { left = '', right = '' },
-    disabled_filetypes = {
-      statusline = {},
-      winbar = {},
-    },
-    ignore_focus = {},
-    always_divide_middle = true,
-    always_show_tabline = false,
-    refresh = {
-      statusline = 100,
-      tabline = 100,
-      winbar = 100,
-    }
+    ignore_focus = { 'toggleterm' },
   },
   sections = {
     lualine_a = { 'mode' },
@@ -404,10 +267,7 @@ load('lualine', 'nvim-lualine/lualine.nvim').setup({
     lualine_y = {},
     lualine_z = {},
   },
-  tabline = {},
-  winbar = {},
-  inactive_winbar = {},
-  extensions = {},
+  extensions = { 'neo-tree' },
 })
 
 -- Buffers
@@ -418,17 +278,17 @@ bufferline.setup({
     show_buffer_icons = true,
     show_buffer_close_icons = false,
     show_close_icon = false,
-    show_tab_indicators = false,
-    buffer_close_icon = '×',
-    left_trunc_marker = ' ',
-    right_trunc_marker = ' ',
+    truncate_names = false,
+    indicator = { icon = '', style = 'none' },
+    modified_icon = '',
+    left_trunc_marker = ' ',
+    right_trunc_marker = ' ',
     separator_style = { '', '' },
     diagnostics = 'nvim_lsp',
     style_preset = {
-      bufferline.style_preset.minimal,
       bufferline.style_preset.no_italic,
+      bufferline.style_preset.minimal,
     },
-    enforce_regular_tabs = true,
     custom_filter = function(buf, bufs)
       if vim.bo[buf].filetype ~= 'neo-tree' then
         return true
