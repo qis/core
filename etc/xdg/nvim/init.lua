@@ -81,7 +81,7 @@ vim.api.nvim_create_autocmd('ModeChanged', {
   pattern = '*:n', -- when entering normal mode
   callback = function()
     vim.opt.list = true
-  end,
+  end
 })
 
 vim.api.nvim_create_autocmd('ModeChanged', {
@@ -89,7 +89,7 @@ vim.api.nvim_create_autocmd('ModeChanged', {
   pattern = 'n:*', -- when leaving normal mode
   callback = function()
     vim.opt.list = false
-  end,
+  end
 })
 
 -- Clipboard
@@ -206,7 +206,7 @@ onedark.setup({
     ['TelescopePromptBorder']  = { fg = '$border', bg = 'none' },
     ['TelescopeResultsBorder'] = { fg = '$border', bg = 'none' },
     ['TelescopePreviewBorder'] = { fg = '$border', bg = 'none' },
-  },
+  }
 })
 
 onedark.load()
@@ -225,8 +225,8 @@ load('neo-tree', 'nvim-neo-tree/neo-tree.nvim').setup({
         end
         return state.name
       end
-    },
-  },
+    }
+  }
 })
 
 -- Telescope
@@ -249,7 +249,7 @@ load('lualine', 'nvim-lualine/lualine.nvim').setup({
     globalstatus = true,
     component_separators = { left = '', right = '' },
     section_separators = { left = '', right = '' },
-    ignore_focus = { 'toggleterm' },
+    ignore_focus = { 'toggleterm' }
   },
   sections = {
     lualine_a = { 'mode' },
@@ -257,7 +257,7 @@ load('lualine', 'nvim-lualine/lualine.nvim').setup({
     lualine_c = { 'filename' },
     lualine_x = { 'encoding', 'fileformat', 'filetype' },
     lualine_y = { 'progress' },
-    lualine_z = { 'location' },
+    lualine_z = { 'location' }
   },
   inactive_sections = {
     lualine_a = {},
@@ -265,9 +265,9 @@ load('lualine', 'nvim-lualine/lualine.nvim').setup({
     lualine_c = { 'filename' },
     lualine_x = { 'location' },
     lualine_y = {},
-    lualine_z = {},
+    lualine_z = {}
   },
-  extensions = { 'neo-tree' },
+  extensions = { 'neo-tree' }
 })
 
 -- Buffers
@@ -297,8 +297,8 @@ bufferline.setup({
         return true
       end
       return false
-    end,
-  },
+    end
+  }
 })
 
 -- Globally disable the italic font style.
